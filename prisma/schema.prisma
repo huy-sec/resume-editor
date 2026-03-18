@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  profile      Profile?
+  tailoredResumes TailoredResume[]
+}
+
+model Profile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String   @default("")
+  email        String   @default("")
+  phone        String   @default("")
+  location     String   @default("")
+  linkedIn     String   @default("")
+  github       String   @default("")
+  website      String   @default("")
+  summary      String   @default("")
+  experiences  Experience[]
+  educations   Education[]
+  skills       Skill[]
+  projects     Project[]
+  certifications Certification[]
+}
+
+model Experience {
+  id          String   @id @default(cuid())
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  company     String
+  title       String
+  startDate   String
+  endDate     String   @default("")
+  current     Boolean  @default(false)
+  bullets     String   @default("[]")
+  sortOrder   Int      @default(0)
+}
+
+model Education {
+  id        String @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  school    String
+  degree    String
+  field     String @default("")
+  startDate String @default("")
+  endDate   String @default("")
+  gpa       String @default("")
+}
+
+model Skill {
+  id        String @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name      String
+  category  String @default("general")
+}
+
+model Project {
+  id          String @id @default(cuid())
+  profileId   String
+  profile     Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name        String
+  description String @default("")
+  techStack   String @default("[]")
+  link        String @default("")
+  sortOrder   Int    @default(0)
+}
+
+model Certification {
+  id        String @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name      String
+  issuer    String @default("")
+  date      String @default("")
+  link      String @default("")
+}
+
+model TailoredResume {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobTitle          String   @default("")
+  company           String   @default("")
+  jobDescription    String
+  resumeJSON        String   @default("{}")
+  coverLetterText   String   @default("")
+  humanizationScore Int      @default(0)
+  scoreFlags        String   @default("[]")
+  keywords          String   @default("{}")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
