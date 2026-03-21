@@ -17,22 +17,27 @@ model User {
 }
 
 model Profile {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name         String   @default("")
-  email        String   @default("")
-  phone        String   @default("")
-  location     String   @default("")
-  linkedIn     String   @default("")
-  github       String   @default("")
-  website      String   @default("")
-  summary      String   @default("")
-  experiences  Experience[]
-  educations   Education[]
-  skills       Skill[]
-  projects     Project[]
-  certifications Certification[]
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                 String   @default("")
+  email                String   @default("")
+  phone                String   @default("")
+  location             String   @default("")
+  linkedIn             String   @default("")
+  github               String   @default("")
+  website              String   @default("")
+  summary              String   @default("")
+  writingStyleExample  String   @default("")
+  githubUrl            String   @default("")
+  linkedInUrl          String   @default("")
+  websiteUrl           String   @default("")
+  experiences          Experience[]
+  educations           Education[]
+  skills               Skill[]
+  projects             Project[]
+  certifications       Certification[]
+  scrapedSources       ScrapedSource[]
 }
 
 model Experience {
@@ -87,6 +92,16 @@ model Certification {
   issuer    String @default("")
   date      String @default("")
   link      String @default("")
+}
+
+model ScrapedSource {
+  id          String   @id @default(cuid())
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sourceType  String
+  sourceUrl   String
+  rawData     String   @default("{}")
+  scrapedAt   DateTime @default(now())
 }
 
 model TailoredResume {

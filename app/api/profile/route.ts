@@ -30,6 +30,14 @@ export async function PUT(req: NextRequest) {
   const profile = await prisma.profile.findUnique({ where: { userId: session.user.id } });
   if (!profile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 
+  if (section === "writingStyle") {
+    await prisma.profile.update({
+      where: { id: profile.id },
+      data: { writingStyleExample: data.writingStyleExample ?? "" },
+    });
+    return NextResponse.json({ success: true });
+  }
+
   if (section === "personal") {
     const updated = await prisma.profile.update({
       where: { id: profile.id },

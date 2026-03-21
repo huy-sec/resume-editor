@@ -56,6 +56,7 @@ interface Profile {
   github: string;
   website: string;
   summary: string;
+  writingStyleExample: string;
   experiences: Experience[];
   educations: Education[];
   skills: Skill[];
@@ -63,7 +64,7 @@ interface Profile {
   certifications: Certification[];
 }
 
-const TABS = ["Personal", "Experience", "Education", "Skills", "Projects", "Certifications"] as const;
+const TABS = ["Personal", "Experience", "Education", "Skills", "Projects", "Certifications", "Writing Style"] as const;
 type Tab = (typeof TABS)[number];
 
 function apiCall(data: object) {
@@ -945,6 +946,47 @@ function CertificationsTab({ profile, onRefresh }: { profile: Profile; onRefresh
   );
 }
 
+// ---- Writing Style Tab ----
+function WritingStyleTab({ profile, onSaved }: { profile: Profile; onSaved: () => void }) {
+  const [text, setText] = useState(profile.writingStyleExample || "");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await apiCall({ section: "writingStyle", data: { writingStyleExample: text } });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+    onSaved();
+  };
+
+  return (
+    <div className="space-y-4 max-w-2xl">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Your Writing Sample</label>
+        <p className="text-gray-500 text-sm mb-2">
+          Share a paragraph or two of something you&apos;ve written — an email, blog post, message, or anything in your own words. We&apos;ll use this to match your voice when writing your resume and cover letter.
+        </p>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={8}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          placeholder="Paste a few sentences or paragraphs you've written naturally — an email, a message, a short post. The more authentic, the better."
+        />
+      </div>
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm font-medium"
+      >
+        {saved ? "Saved!" : saving ? "Saving..." : "Save Writing Style"}
+      </button>
+    </div>
+  );
+}
+
 // ---- Main Profile Page ----
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -1037,6 +1079,9 @@ export default function ProfilePage() {
         )}
         {activeTab === "Certifications" && (
           <CertificationsTab profile={profile} onRefresh={fetchProfile} />
+        )}
+        {activeTab === "Writing Style" && (
+          <WritingStyleTab profile={profile} onSaved={fetchProfile} />
         )}
       </div>
     </div>

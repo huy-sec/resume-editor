@@ -92,29 +92,29 @@ function ScoreGauge({ score }: { score: number }) {
   const color =
     score >= 80 ? "text-green-600" : score >= 60 ? "text-yellow-600" : "text-red-600";
   const bgColor =
-    score >= 80 ? "bg-green-100" : score >= 60 ? "bg-yellow-100" : "bg-red-100";
+    score >= 80 ? "bg-green-50 border-green-200" : score >= 60 ? "bg-yellow-50 border-yellow-200" : "bg-red-50 border-red-200";
   const barColor =
     score >= 80 ? "bg-green-500" : score >= 60 ? "bg-yellow-500" : "bg-red-500";
+  const label =
+    score >= 85
+      ? "Likely passes AI detectors"
+      : score >= 70
+      ? "Mostly human-sounding"
+      : "Needs revision — fix AI writing";
 
   return (
-    <div className={`${bgColor} rounded-xl p-4`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-gray-700">Humanization Score</span>
-        <span className={`text-2xl font-bold ${color}`}>{score}%</span>
+    <div className={`${bgColor} border rounded-xl p-4`}>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-sm font-semibold text-gray-700">Humanization Score</span>
+        <span className={`text-3xl font-bold ${color}`}>{score}%</span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
         <div
-          className={`${barColor} h-2 rounded-full transition-all`}
+          className={`${barColor} h-2.5 rounded-full transition-all`}
           style={{ width: `${score}%` }}
         />
       </div>
-      <p className="text-xs text-gray-500 mt-2">
-        {score >= 85
-          ? "Likely passes AI detectors"
-          : score >= 70
-          ? "Mostly human-sounding"
-          : "Consider revisions"}
-      </p>
+      <p className={`text-xs font-medium ${color}`}>{label}</p>
     </div>
   );
 }
@@ -349,6 +349,8 @@ export default function TailorReviewPage() {
   const [saved, setSaved] = useState(false);
   const [rescoring, setRescoring] = useState(false);
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [humanizing, setHumanizing] = useState(false);
+  const [humanizeMessage, setHumanizeMessage] = useState("");
 
   const fetchData = useCallback(async () => {
     const res = await fetch(`/api/tailor/${id}`);
@@ -397,6 +399,31 @@ export default function TailorReviewPage() {
     setFlags(d.flags || []);
     setSuggestions(d.suggestions || []);
     setRescoring(false);
+  };
+
+  const handleHumanize = async () => {
+    setHumanizing(true);
+    setHumanizeMessage("");
+    try {
+      const res = await fetch("/api/humanize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, flags, suggestions }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error);
+      setResumeData(d.resumeJSON || {});
+      setCoverLetter(d.coverLetterText || "");
+      setScore(d.humanizationScore || 0);
+      setFlags(d.scoreFlags || []);
+      setSuggestions(d.suggestions || []);
+      setHumanizeMessage(`Rewritten! New score: ${d.humanizationScore}%`);
+      setTimeout(() => setHumanizeMessage(""), 4000);
+    } catch (e: unknown) {
+      setHumanizeMessage(e instanceof Error ? e.message : "Humanize failed");
+    } finally {
+      setHumanizing(false);
+    }
   };
 
   const handleDownload = async (type: "resume" | "cover" | "both") => {
@@ -545,10 +572,24 @@ export default function TailorReviewPage() {
           {/* Score */}
           <ScoreGauge score={score} />
 
+          {/* Fix AI Writing button */}
+          <button
+            onClick={handleHumanize}
+            disabled={humanizing || rescoring}
+            className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50 transition-colors font-medium"
+          >
+            {humanizing ? "Rewriting with human touch..." : "Fix AI Writing"}
+          </button>
+          {humanizeMessage && (
+            <p className={`text-xs text-center font-medium ${humanizeMessage.startsWith("Rewritten") ? "text-green-600" : "text-red-500"}`}>
+              {humanizeMessage}
+            </p>
+          )}
+
           {/* Re-score button */}
           <button
             onClick={handleRescore}
-            disabled={rescoring}
+            disabled={rescoring || humanizing}
             className="w-full border border-gray-300 bg-white px-4 py-2 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 transition-colors"
           >
             {rescoring ? "Scoring..." : "Re-score Humanization"}

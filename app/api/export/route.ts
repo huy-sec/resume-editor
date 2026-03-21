@@ -8,16 +8,16 @@ function buildResumeHTML(resumeData: any, profile: any): string {
   const experiences = (resumeData.experiences || [])
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((exp: any) => `
-    <div class="mb-4">
-      <div class="flex justify-between items-start">
+    <div class="experience-entry">
+      <div class="row">
         <div>
           <div class="font-semibold">${exp.title}</div>
-          <div class="text-gray-600">${exp.company}</div>
+          <div class="gray small">${exp.company}</div>
         </div>
-        <div class="text-gray-500 text-sm">${exp.startDate} – ${exp.current ? "Present" : exp.endDate}</div>
+        <div class="light small" style="white-space:nowrap">${exp.startDate} – ${exp.current ? "Present" : exp.endDate}</div>
       </div>
-      <ul class="mt-2 ml-4 list-disc space-y-1">
-        ${(exp.bullets || []).map((b: string) => `<li class="text-sm text-gray-700">${b}</li>`).join("")}
+      <ul>
+        ${(exp.bullets || []).map((b: string) => `<li>${b}</li>`).join("")}
       </ul>
     </div>
   `)
@@ -26,13 +26,13 @@ function buildResumeHTML(resumeData: any, profile: any): string {
   const educations = (resumeData.educations || [])
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((edu: any) => `
-    <div class="mb-3">
-      <div class="flex justify-between">
+    <div class="edu-entry">
+      <div class="row">
         <div>
           <div class="font-semibold">${edu.school}</div>
-          <div class="text-gray-600 text-sm">${edu.degree}${edu.field ? ` in ${edu.field}` : ""}${edu.gpa ? ` • GPA: ${edu.gpa}` : ""}</div>
+          <div class="gray small">${edu.degree}${edu.field ? ` in ${edu.field}` : ""}${edu.gpa ? ` &nbsp;•&nbsp; GPA: ${edu.gpa}` : ""}</div>
         </div>
-        <div class="text-gray-500 text-sm">${edu.startDate}${edu.endDate ? ` – ${edu.endDate}` : ""}</div>
+        <div class="light small" style="white-space:nowrap">${edu.startDate}${edu.endDate ? ` – ${edu.endDate}` : ""}</div>
       </div>
     </div>
   `)
@@ -49,19 +49,17 @@ function buildResumeHTML(resumeData: any, profile: any): string {
   const skillsHTML = Object.entries(skillCategories)
     .map(
       ([cat, names]) =>
-        `<div class="mb-1"><span class="font-medium capitalize">${cat}:</span> <span class="text-gray-700">${(names as string[]).join(", ")}</span></div>`
+        `<div class="skill-row"><span class="font-medium capitalize">${cat}:</span> <span class="gray">${(names as string[]).join(", ")}</span></div>`
     )
     .join("");
 
   const projects = (resumeData.projects || [])
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((proj: any) => `
-    <div class="mb-3">
-      <div class="flex justify-between">
-        <div class="font-semibold">${proj.name}${proj.link ? ` <span class="font-normal text-blue-600 text-sm">${proj.link}</span>` : ""}</div>
-      </div>
-      ${proj.techStack?.length ? `<div class="text-xs text-gray-500 mb-1">${Array.isArray(proj.techStack) ? proj.techStack.join(" • ") : proj.techStack}</div>` : ""}
-      <p class="text-sm text-gray-700">${proj.description}</p>
+    <div class="proj-entry">
+      <div class="font-semibold">${proj.name}${proj.link ? ` <span style="font-weight:400;color:#2563eb;font-size:9pt">${proj.link}</span>` : ""}</div>
+      ${proj.techStack?.length ? `<div class="xsmall light" style="margin-bottom:2px">${Array.isArray(proj.techStack) ? proj.techStack.join(" &nbsp;•&nbsp; ") : proj.techStack}</div>` : ""}
+      <p class="small gray" style="line-height:1.5;margin-top:2px">${proj.description}</p>
     </div>
   `)
     .join("");
@@ -72,41 +70,61 @@ function buildResumeHTML(resumeData: any, profile: any): string {
 <meta charset="UTF-8">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Arial', sans-serif; font-size: 11pt; color: #1a1a1a; padding: 40px 48px; max-width: 800px; margin: 0 auto; }
-  h1 { font-size: 22pt; font-weight: 700; }
-  h2 { font-size: 11pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1.5px solid #1a1a1a; padding-bottom: 3px; margin-bottom: 10px; margin-top: 18px; }
-  .contact { color: #444; font-size: 10pt; margin-top: 4px; }
-  .mb-1 { margin-bottom: 4px; }
-  .mb-3 { margin-bottom: 12px; }
-  .mb-4 { margin-bottom: 16px; }
-  .mt-2 { margin-top: 8px; }
-  .ml-4 { margin-left: 16px; }
+  body { font-family: Arial, sans-serif; font-size: 10.5pt; color: #1a1a1a; }
+  h1 { font-size: 20pt; font-weight: 700; }
+  h2 {
+    font-size: 10pt; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; border-bottom: 1.5px solid #1a1a1a;
+    padding-bottom: 2px; margin-bottom: 8px; margin-top: 14px;
+    page-break-after: avoid; break-after: avoid;
+  }
+  .contact { color: #444; font-size: 9.5pt; margin-top: 3px; }
+  .section-block {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 12px;
+  }
+  .experience-entry {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 14px;
+  }
+  .edu-entry {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 10px;
+  }
+  .proj-entry {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 10px;
+  }
+  .row { display: flex; justify-content: space-between; align-items: flex-start; }
   .font-semibold { font-weight: 600; }
   .font-medium { font-weight: 500; }
-  .text-gray-500 { color: #6b7280; }
-  .text-gray-600 { color: #4b5563; }
-  .text-gray-700 { color: #374151; }
-  .text-blue-600 { color: #2563eb; }
-  .text-sm { font-size: 10pt; }
-  .text-xs { font-size: 9pt; }
-  .flex { display: flex; }
-  .justify-between { justify-content: space-between; }
-  .items-start { align-items: flex-start; }
+  .gray { color: #4b5563; }
+  .light { color: #6b7280; }
+  .blue { color: #2563eb; }
+  .small { font-size: 9.5pt; }
+  .xsmall { font-size: 9pt; }
   .capitalize { text-transform: capitalize; }
-  ul { padding-left: 16px; }
-  li { margin-bottom: 2px; }
-  .space-y-1 > * + * { margin-top: 3px; }
+  ul { padding-left: 15px; margin-top: 5px; }
+  li { margin-bottom: 2px; line-height: 1.45; font-size: 10pt; }
+  .skill-row { margin-bottom: 3px; line-height: 1.5; }
+  p.summary { font-size: 10.5pt; line-height: 1.55; }
 </style>
 </head>
 <body>
-  <h1>${profile?.name || resumeData.name || "Name"}</h1>
-  <div class="contact">
-    ${[profile?.email, profile?.phone, profile?.location, profile?.linkedIn, profile?.github]
-      .filter(Boolean)
-      .join(" | ")}
+  <div class="section-block">
+    <h1>${profile?.name || resumeData.name || "Name"}</h1>
+    <div class="contact">
+      ${[profile?.email, profile?.phone, profile?.location, profile?.linkedIn, profile?.github]
+        .filter(Boolean)
+        .join(" &nbsp;|&nbsp; ")}
+    </div>
   </div>
 
-  ${resumeData.summary ? `<h2>Summary</h2><p class="text-gray-700" style="font-size:10.5pt;line-height:1.5">${resumeData.summary}</p>` : ""}
+  ${resumeData.summary ? `<h2>Summary</h2><div class="section-block"><p class="summary">${resumeData.summary}</p></div>` : ""}
 
   ${experiences ? `<h2>Experience</h2>${experiences}` : ""}
 
@@ -114,7 +132,7 @@ function buildResumeHTML(resumeData: any, profile: any): string {
 
   ${educations ? `<h2>Education</h2>${educations}` : ""}
 
-  ${skillsHTML ? `<h2>Skills</h2>${skillsHTML}` : ""}
+  ${skillsHTML ? `<h2>Skills</h2><div class="section-block">${skillsHTML}</div>` : ""}
 </body>
 </html>`;
 }
@@ -160,6 +178,30 @@ function buildCoverLetterHTML(
 </html>`;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildFileName(profile: any, tailored: any, type: string): string {
+  // If multi-word: keep first word + first letter of each subsequent word (e.g. "Amazon Web Services" → "AmazonWS")
+  const abbreviate = (s: string) => {
+    const words = (s || "").replace(/[^a-zA-Z0-9\s]/g, "").trim().split(/\s+/).filter(Boolean);
+    if (words.length <= 1) return words[0] || "";
+    return words[0] + words.slice(1).map((w) => w[0].toUpperCase()).join("");
+  };
+
+  // Build "FirstLast" from full name (capitalize each word, no spaces)
+  const fullName = (profile?.name || "Applicant").trim();
+  const nameParts = fullName.split(/\s+/);
+  const firstName = nameParts[0] || "First";
+  const lastName = nameParts.slice(1).join("") || "Last";
+  const nameSlug = `${firstName}${lastName}`;
+
+  const company = abbreviate(tailored.company || "Company");
+  const role = abbreviate(tailored.jobTitle || "Role");
+  const date = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const typeName = type === "resume" ? "Resume" : type === "cover" ? "CoverLetter" : "Both";
+
+  return `${nameSlug}-${company}-${role}-${date}-${typeName}.pdf`;
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -182,11 +224,14 @@ export async function POST(req: NextRequest) {
   try {
     let pdfBuffer: Buffer;
 
+    const RESUME_MARGINS = { top: "0.6in", bottom: "0.6in", left: "0.75in", right: "0.75in" };
+    const COVER_MARGINS  = { top: "0.75in", bottom: "0.75in", left: "0.875in", right: "0.875in" };
+
     if (type === "resume") {
       const page = await browser.newPage();
       await page.setContent(buildResumeHTML(resumeData, profile), { waitUntil: "networkidle0" });
       pdfBuffer = Buffer.from(
-        await page.pdf({ format: "Letter", printBackground: true, margin: { top: "0", bottom: "0", left: "0", right: "0" } })
+        await page.pdf({ format: "Letter", printBackground: true, margin: RESUME_MARGINS })
       );
     } else if (type === "cover") {
       const page = await browser.newPage();
@@ -194,18 +239,18 @@ export async function POST(req: NextRequest) {
         buildCoverLetterHTML(tailored.coverLetterText, profile, tailored.jobTitle, tailored.company),
         { waitUntil: "networkidle0" }
       );
-      pdfBuffer = Buffer.from(await page.pdf({ format: "Letter", printBackground: true }));
+      pdfBuffer = Buffer.from(await page.pdf({ format: "Letter", printBackground: true, margin: COVER_MARGINS }));
     } else {
       const page1 = await browser.newPage();
       await page1.setContent(buildResumeHTML(resumeData, profile), { waitUntil: "networkidle0" });
-      const resume = await page1.pdf({ format: "Letter", printBackground: true });
+      const resume = await page1.pdf({ format: "Letter", printBackground: true, margin: RESUME_MARGINS });
 
       const page2 = await browser.newPage();
       await page2.setContent(
         buildCoverLetterHTML(tailored.coverLetterText, profile, tailored.jobTitle, tailored.company),
         { waitUntil: "networkidle0" }
       );
-      const cover = await page2.pdf({ format: "Letter", printBackground: true });
+      const cover = await page2.pdf({ format: "Letter", printBackground: true, margin: COVER_MARGINS });
 
       pdfBuffer = Buffer.concat([Buffer.from(resume), Buffer.from(cover)]);
     }
@@ -213,7 +258,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse(pdfBuffer as unknown as BodyInit, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${type}-${tailored.jobTitle || "resume"}.pdf"`,
+        "Content-Disposition": `attachment; filename="${buildFileName(profile, tailored, type)}"`,
       },
     });
   } finally {

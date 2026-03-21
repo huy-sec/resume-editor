@@ -31,7 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             href="/profile/import"
             className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors text-gray-300 hover:text-white text-sm"
           >
-            Import Resume
+            Import Information
           </Link>
           <Link
             href="/tailor"

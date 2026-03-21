@@ -1,15 +1,17 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { callClaude, extractJSON } from "@/lib/claude";
-import { buildTailorPrompt, buildCoverLetterPrompt, buildScoringPrompt, buildKeywordPrompt } from "@/lib/prompts";
+import { buildTailorPromptWithApproach, buildCoverLetterPrompt, buildScoringPrompt, buildKeywordPrompt, TailorApproach } from "@/lib/prompts";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { jobDescription } = await req.json();
+  const { jobDescription, approach } = await req.json();
   if (!jobDescription?.trim()) return NextResponse.json({ error: "No job description" }, { status: 400 });
+
+  const selectedApproach: TailorApproach = approach || "achievement-focused";
 
   // Get profile
   const profile = await prisma.profile.findUnique({
@@ -18,6 +20,8 @@ export async function POST(req: NextRequest) {
   });
   if (!profile) return NextResponse.json({ error: "Please complete your profile first" }, { status: 400 });
 
+  const writingStyleExample = profile.writingStyleExample || undefined;
+
   const profileJSON = JSON.stringify({
     ...profile,
     experiences: profile.experiences.map((e) => ({ ...e, bullets: JSON.parse(e.bullets) })),
@@ -25,13 +29,13 @@ export async function POST(req: NextRequest) {
   });
 
   // 1. Tailor resume
-  const tailorResponse = await callClaude(buildTailorPrompt(profileJSON, jobDescription));
+  const tailorResponse = await callClaude(buildTailorPromptWithApproach(profileJSON, jobDescription, selectedApproach, writingStyleExample));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resumeJSON = extractJSON(tailorResponse) as any;
 
   // 2. Cover letter
   const coverLetterResponse = await callClaude(
-    buildCoverLetterPrompt(JSON.stringify(resumeJSON), jobDescription, profile.name)
+    buildCoverLetterPrompt(JSON.stringify(resumeJSON), jobDescription, profile.name, writingStyleExample)
   );
   const coverLetterText = coverLetterResponse.trim();
 
