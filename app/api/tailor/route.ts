@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { callClaude, extractJSON } from "@/lib/claude";
-import { buildTailorPromptWithApproach, buildCoverLetterPrompt, buildScoringPrompt, buildKeywordPrompt, TailorApproach } from "@/lib/prompts";
+import { buildTailorPromptWithApproach, buildCoverLetterPrompt, buildScoringPrompt, buildKeywordPrompt, buildPersonalityContext, TailorApproach } from "@/lib/prompts";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -22,6 +22,15 @@ export async function POST(req: NextRequest) {
 
   const writingStyleExample = profile.writingStyleExample || undefined;
 
+  const personalityContext = buildPersonalityContext({
+    mbti: profile.mbti,
+    workStyle: profile.workStyle,
+    personalityAnswers: profile.personalityAnswers,
+    careerMotivators: profile.careerMotivators,
+    communicationStyle: profile.communicationStyle,
+    personalBrand: profile.personalBrand,
+  }) || undefined;
+
   const profileJSON = JSON.stringify({
     ...profile,
     experiences: profile.experiences.map((e) => ({ ...e, bullets: JSON.parse(e.bullets) })),
@@ -29,13 +38,13 @@ export async function POST(req: NextRequest) {
   });
 
   // 1. Tailor resume
-  const tailorResponse = await callClaude(buildTailorPromptWithApproach(profileJSON, jobDescription, selectedApproach, writingStyleExample));
+  const tailorResponse = await callClaude(buildTailorPromptWithApproach(profileJSON, jobDescription, selectedApproach, writingStyleExample, personalityContext));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resumeJSON = extractJSON(tailorResponse) as any;
 
   // 2. Cover letter
   const coverLetterResponse = await callClaude(
-    buildCoverLetterPrompt(JSON.stringify(resumeJSON), jobDescription, profile.name, writingStyleExample)
+    buildCoverLetterPrompt(JSON.stringify(resumeJSON), jobDescription, profile.name, writingStyleExample, personalityContext)
   );
   const coverLetterText = coverLetterResponse.trim();
 

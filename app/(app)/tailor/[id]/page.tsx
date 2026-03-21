@@ -438,7 +438,10 @@ export default function TailorReviewPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${type}-${data?.jobTitle || "resume"}.pdf`;
+      // Use filename from server's Content-Disposition header
+      const disposition = res.headers.get("Content-Disposition");
+      const match = disposition?.match(/filename="([^"]+)"/);
+      a.download = match?.[1] ?? `resume-${type}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     }

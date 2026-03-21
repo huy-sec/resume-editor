@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 
 // ---- Types ----
 interface Experience {
@@ -1042,6 +1043,15 @@ export default function ProfilePage() {
           Keep your profile up to date for better AI tailoring results
         </p>
       </div>
+
+      <Link href="/profile/personality" className="block bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-4 mb-6 hover:border-indigo-300 transition-colors">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="font-semibold text-indigo-900 text-sm">Personality &amp; Voice</div>
+            <div className="text-indigo-600 text-xs mt-0.5">Answer questions to make your resume sound more like you →</div>
+          </div>
+        </div>
+      </Link>
 
       {/* Tab Bar */}
       <div className="flex gap-1 mb-6 border-b border-gray-200">

@@ -30,6 +30,25 @@ export async function PUT(req: NextRequest) {
   const profile = await prisma.profile.findUnique({ where: { userId: session.user.id } });
   if (!profile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 
+  if (section === "personality") {
+    await prisma.profile.update({
+      where: { id: profile.id },
+      data: {
+        mbti: data.mbti ?? "",
+        workStyle: data.workStyle ?? "",
+        personalityAnswers: typeof data.personalityAnswers === "string"
+          ? data.personalityAnswers
+          : JSON.stringify(data.personalityAnswers ?? {}),
+        careerMotivators: typeof data.careerMotivators === "string"
+          ? data.careerMotivators
+          : JSON.stringify(data.careerMotivators ?? []),
+        communicationStyle: data.communicationStyle ?? "",
+        personalBrand: data.personalBrand ?? "",
+      },
+    });
+    return NextResponse.json({ success: true });
+  }
+
   if (section === "writingStyle") {
     await prisma.profile.update({
       where: { id: profile.id },

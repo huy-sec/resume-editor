@@ -147,7 +147,7 @@ function buildCoverLetterHTML(
   const paragraphs = coverLetterText
     .split("\n")
     .filter((p) => p.trim())
-    .map((p) => `<p style="margin-bottom:16px;line-height:1.7">${p}</p>`)
+    .map((p) => `<p class="para">${p}</p>`)
     .join("");
   return `<!DOCTYPE html>
 <html>
@@ -155,24 +155,32 @@ function buildCoverLetterHTML(
 <meta charset="UTF-8">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Arial', sans-serif; font-size: 11pt; color: #1a1a1a; padding: 60px 64px; max-width: 800px; margin: 0 auto; }
+  body { font-family: Arial, sans-serif; font-size: 10.5pt; color: #1a1a1a; }
+  .name  { font-size: 14pt; font-weight: 700; margin-bottom: 3px; }
+  .contact { color: #555; font-size: 9.5pt; margin-bottom: 18px; }
+  .date  { color: #555; font-size: 9.5pt; margin-bottom: 14px; }
+  .to    { margin-bottom: 14px; font-size: 10pt; }
+  .to .co { font-weight: 600; }
+  .to .re { color: #555; }
+  .greeting { margin-bottom: 12px; font-size: 10.5pt; }
+  .para  { font-size: 10.5pt; line-height: 1.6; margin-bottom: 11px; }
+  .sign  { margin-top: 18px; font-size: 10.5pt; }
+  .sign-name { font-weight: 600; margin-top: 12px; }
 </style>
 </head>
 <body>
-  <div style="margin-bottom:40px">
-    <div style="font-size:16pt;font-weight:700">${profile?.name || "Applicant"}</div>
-    <div style="color:#555;margin-top:4px;font-size:10pt">${[profile?.email, profile?.phone, profile?.location].filter(Boolean).join(" | ")}</div>
+  <div class="name">${profile?.name || "Applicant"}</div>
+  <div class="contact">${[profile?.email, profile?.phone, profile?.location].filter(Boolean).join(" &nbsp;|&nbsp; ")}</div>
+  <div class="date">${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</div>
+  <div class="to">
+    <div class="co">${company || "Hiring Team"}</div>
+    <div class="re">Re: ${jobTitle || "Application"}</div>
   </div>
-  <div style="margin-bottom:32px;color:#555;font-size:10pt">${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</div>
-  <div style="margin-bottom:24px">
-    <div style="font-weight:600">${company || "Hiring Team"}</div>
-    <div style="color:#555">Re: ${jobTitle || "Application"}</div>
-  </div>
-  <div style="margin-bottom:20px">Dear Hiring Manager,</div>
+  <div class="greeting">Dear Hiring Manager,</div>
   ${paragraphs}
-  <div style="margin-top:32px">
+  <div class="sign">
     <div>Sincerely,</div>
-    <div style="margin-top:16px;font-weight:600">${profile?.name || "Applicant"}</div>
+    <div class="sign-name">${profile?.name || "Applicant"}</div>
   </div>
 </body>
 </html>`;
@@ -224,8 +232,8 @@ export async function POST(req: NextRequest) {
   try {
     let pdfBuffer: Buffer;
 
-    const RESUME_MARGINS = { top: "0.6in", bottom: "0.6in", left: "0.75in", right: "0.75in" };
-    const COVER_MARGINS  = { top: "0.75in", bottom: "0.75in", left: "0.875in", right: "0.875in" };
+    const RESUME_MARGINS = { top: "0.6in",  bottom: "0.6in",  left: "0.75in", right: "0.75in" };
+    const COVER_MARGINS  = { top: "0.75in", bottom: "0.65in", left: "1in",    right: "1in"    };
 
     if (type === "resume") {
       const page = await browser.newPage();

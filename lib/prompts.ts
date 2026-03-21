@@ -78,8 +78,9 @@ OUTPUT: Return ONLY valid JSON in this exact structure:
 }`;
 }
 
-export function buildCoverLetterPrompt(resumeJSON: string, jobDescription: string, profileName: string, writingStyleExample?: string): string {
+export function buildCoverLetterPrompt(resumeJSON: string, jobDescription: string, profileName: string, writingStyleExample?: string, personalityContext?: string): string {
   const styleSection = writingStyleExample ? `\nMATCH THIS WRITING STYLE AND VOICE (this is an example of how the candidate writes):\n${writingStyleExample}\n` : "";
+  const personalitySection = personalityContext ? `\n${personalityContext}\n` : "";
 
   return `You are an expert cover letter writer. Write a cover letter that sounds like a real person — warm, confident, and specific.
 
@@ -88,7 +89,7 @@ ${HUMANIZATION_RULES}
 CANDIDATE INFO:
 Name: ${profileName}
 Tailored Resume: ${resumeJSON}
-${styleSection}
+${styleSection}${personalitySection}
 JOB DESCRIPTION:
 ${jobDescription}
 
@@ -294,9 +295,10 @@ Analyze the fit between the profile and JD, then return ONLY valid JSON:
 }`;
 }
 
-export function buildTailorPromptWithApproach(profileJSON: string, jobDescription: string, approach: TailorApproach, writingStyleExample?: string): string {
+export function buildTailorPromptWithApproach(profileJSON: string, jobDescription: string, approach: TailorApproach, writingStyleExample?: string, personalityContext?: string): string {
   const approachConfig = APPROACH_DESCRIPTIONS[approach];
   const styleSection = writingStyleExample ? `\nUSER'S WRITING STYLE EXAMPLE (match this tone and voice closely):\n${writingStyleExample}\n` : "";
+  const personalitySection = personalityContext ? `\n${personalityContext}\n` : "";
 
   return `You are an expert resume writer and ATS optimization specialist. Your job is to tailor a resume for a specific job posting.
 
@@ -308,7 +310,7 @@ WHY THE CANDIDATE IS APPLYING (weave this narrative into the summary and tone):
 
 APPROACH EXECUTION INSTRUCTIONS:
 ${approachConfig.instruction}
-${styleSection}
+${styleSection}${personalitySection}
 PROFILE DATA:
 ${profileJSON}
 
@@ -407,6 +409,62 @@ OUTPUT: Return ONLY valid JSON:
   "resumeJSON": { ...same structure as input resume },
   "coverLetterText": "full rewritten cover letter text"
 }`;
+}
+
+export function buildPersonalityContext(profile: {
+  mbti?: string;
+  workStyle?: string;
+  personalityAnswers?: string;
+  careerMotivators?: string;
+  communicationStyle?: string;
+  personalBrand?: string;
+}): string {
+  const answers = (() => {
+    try { return JSON.parse(profile.personalityAnswers || "{}"); } catch { return {}; }
+  })();
+  const motivators = (() => {
+    try { return JSON.parse(profile.careerMotivators || "[]"); } catch { return []; }
+  })();
+
+  const parts: string[] = [];
+
+  if (profile.mbti) {
+    const mbtiContext: Record<string, string> = {
+      INTJ: "analytical, strategic, direct, values competence and results, prefers precision over warmth",
+      INTP: "logical, curious, precise, values accuracy, understated confidence",
+      ENTJ: "decisive, commanding, results-driven, confident, direct communicator",
+      ENTP: "creative problem-solver, enthusiastic, challenges assumptions, big-picture thinker",
+      INFJ: "thoughtful, values-driven, mission-focused, empathetic but private",
+      INFP: "authentic, values-aligned, passionate about meaning, gentle but deeply committed",
+      ENFJ: "people-oriented, inspiring, communicates impact through relationships and growth",
+      ENFP: "enthusiastic, creative, connects ideas across domains, warm and genuine",
+      ISTJ: "reliable, detail-oriented, process-driven, consistent, dependable",
+      ISFJ: "supportive, conscientious, thorough, quietly dedicated",
+      ESTJ: "organized, direct, results-focused, leads through structure and accountability",
+      ESFJ: "collaborative, team-oriented, warm, values harmony and recognition",
+      ISTP: "practical, hands-on, efficient, fixes things, low ego",
+      ISFP: "creative, flexible, genuine, works through care and craftsmanship",
+      ESTP: "action-oriented, practical, adaptable, thrives in fast-moving environments",
+      ESFP: "energetic, spontaneous, people-focused, learns by doing",
+    };
+    const mbtiDesc = mbtiContext[profile.mbti.toUpperCase()] || "";
+    parts.push(`MBTI Type: ${profile.mbti.toUpperCase()}${mbtiDesc ? ` — ${mbtiDesc}` : ""}`);
+  }
+
+  if (profile.workStyle) parts.push(`Work Style: ${profile.workStyle}`);
+  if (profile.communicationStyle) parts.push(`Communication Style: ${profile.communicationStyle}`);
+  if (profile.personalBrand) parts.push(`How they want to be perceived: ${profile.personalBrand}`);
+  if (motivators.length > 0) parts.push(`Career Motivators: ${motivators.join(", ")}`);
+
+  if (Object.keys(answers).length > 0) {
+    parts.push("Personality Q&A:");
+    for (const [q, a] of Object.entries(answers)) {
+      if (a) parts.push(`  Q: ${q}\n  A: ${a}`);
+    }
+  }
+
+  if (parts.length === 0) return "";
+  return `\nCANDIDATE PERSONALITY PROFILE (use this to match tone, voice, and emphasis):\n${parts.join("\n")}\n`;
 }
 
 export function buildKeywordPrompt(jobDescription: string): string {
