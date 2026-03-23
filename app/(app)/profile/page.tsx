@@ -212,7 +212,7 @@ function ExperienceTab({ profile, onRefresh }: { profile: Profile; onRefresh: ()
     setAdding(false);
   };
 
-  const ExperienceForm = ({ onSubmit }: { onSubmit: () => void }) => (
+  const renderExperienceForm = (onSubmit: () => void) => (
     <div className="border border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50">
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -303,7 +303,7 @@ function ExperienceTab({ profile, onRefresh }: { profile: Profile; onRefresh: ()
       {profile.experiences.map((exp) => (
         <div key={exp.id}>
           {editId === exp.id ? (
-            <ExperienceForm onSubmit={handleUpdate} />
+            renderExperienceForm(handleUpdate)
           ) : (
             <div className="border border-gray-200 rounded-xl p-4 bg-white">
               <div className="flex justify-between items-start">
@@ -343,7 +343,7 @@ function ExperienceTab({ profile, onRefresh }: { profile: Profile; onRefresh: ()
         </div>
       ))}
 
-      {adding && <ExperienceForm onSubmit={handleAdd} />}
+      {adding && renderExperienceForm(handleAdd)}
 
       {!adding && editId === null && (
         <button
@@ -402,7 +402,7 @@ function EducationTab({ profile, onRefresh }: { profile: Profile; onRefresh: () 
     setAdding(false);
   };
 
-  const EducationForm = ({ onSubmit }: { onSubmit: () => void }) => (
+  const renderEducationForm = (onSubmit: () => void) => (
     <div className="border border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50">
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -489,7 +489,7 @@ function EducationTab({ profile, onRefresh }: { profile: Profile; onRefresh: () 
       {profile.educations.map((edu) => (
         <div key={edu.id}>
           {editId === edu.id ? (
-            <EducationForm onSubmit={handleUpdate} />
+            renderEducationForm(handleUpdate)
           ) : (
             <div className="border border-gray-200 rounded-xl p-4 bg-white">
               <div className="flex justify-between items-start">
@@ -525,7 +525,7 @@ function EducationTab({ profile, onRefresh }: { profile: Profile; onRefresh: () 
         </div>
       ))}
 
-      {adding && <EducationForm onSubmit={handleAdd} />}
+      {adding && renderEducationForm(handleAdd)}
 
       {!adding && editId === null && (
         <button
@@ -689,7 +689,7 @@ function ProjectsTab({ profile, onRefresh }: { profile: Profile; onRefresh: () =
     setAdding(false);
   };
 
-  const ProjectForm = ({ onSubmit }: { onSubmit: () => void }) => (
+  const renderProjectForm = (onSubmit: () => void) => (
     <div className="border border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50">
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-1">Project Name</label>
@@ -757,7 +757,7 @@ function ProjectsTab({ profile, onRefresh }: { profile: Profile; onRefresh: () =
       {profile.projects.map((proj) => (
         <div key={proj.id}>
           {editId === proj.id ? (
-            <ProjectForm onSubmit={handleUpdate} />
+            renderProjectForm(handleUpdate)
           ) : (
             <div className="border border-gray-200 rounded-xl p-4 bg-white">
               <div className="flex justify-between items-start">
@@ -802,7 +802,7 @@ function ProjectsTab({ profile, onRefresh }: { profile: Profile; onRefresh: () =
         </div>
       ))}
 
-      {adding && <ProjectForm onSubmit={handleAdd} />}
+      {adding && renderProjectForm(handleAdd)}
 
       {!adding && editId === null && (
         <button

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { analyzeKeywordCoverage, buildFullResumeText, type KeywordMap, type KeywordMatch } from "@/lib/keywords";
 
 // ---- Types ----
 interface ScoreFlag {
@@ -10,14 +11,7 @@ interface ScoreFlag {
   severity: "low" | "medium" | "high";
 }
 
-interface KeywordMap {
-  required: string[];
-  preferred: string[];
-  technical: string[];
-  soft: string[];
-  jobTitle: string;
-  company: string;
-}
+// KeywordMap imported from lib/keywords
 
 interface ResumeExp {
   company: string;
@@ -119,34 +113,99 @@ function ScoreGauge({ score }: { score: number }) {
   );
 }
 
-// ---- Keyword Checklist ----
-function KeywordChecklist({ text, keywords }: { text: string; keywords: KeywordMap }) {
-  const allKeywords = [
-    ...keywords.required.map((k) => ({ kw: k, type: "required" })),
-    ...keywords.technical.map((k) => ({ kw: k, type: "technical" })),
-  ];
+// ---- Keyword Coverage Score ----
+function KeywordCoverageScore({ score, requiredScore, technicalScore }: { score: number; requiredScore: number; technicalScore: number }) {
+  const color = score >= 80 ? "text-green-600" : score >= 60 ? "text-yellow-600" : "text-red-600";
+  const bgColor = score >= 80 ? "bg-green-50 border-green-200" : score >= 60 ? "bg-yellow-50 border-yellow-200" : "bg-red-50 border-red-200";
+  const barColor = score >= 80 ? "bg-green-500" : score >= 60 ? "bg-yellow-500" : "bg-red-500";
+  const label = score >= 85 ? "Strong ATS match" : score >= 65 ? "Decent coverage — some gaps" : "Low coverage — review missing keywords";
 
   return (
-    <div className="space-y-1 max-h-64 overflow-y-auto">
-      {allKeywords.map(({ kw, type }) => {
-        const found = text.toLowerCase().includes(kw.toLowerCase());
-        return (
-          <div key={kw} className="flex items-center gap-2 text-sm">
-            <span
-              className={`w-4 h-4 rounded-full flex items-center justify-center text-xs flex-shrink-0 ${
-                found ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"
-              }`}
-            >
-              {found ? "✓" : "✗"}
-            </span>
-            <span className={found ? "text-gray-700" : "text-gray-400"}>{kw}</span>
-            <span className="text-xs text-gray-300 ml-auto">{type}</span>
+    <div className={`${bgColor} border rounded-xl p-4`}>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-sm font-semibold text-gray-700">Keyword Coverage</span>
+        <span className={`text-3xl font-bold ${color}`}>{score}%</span>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+        <div className={`${barColor} h-2.5 rounded-full transition-all`} style={{ width: `${score}%` }} />
+      </div>
+      <p className={`text-xs font-medium ${color} mb-2`}>{label}</p>
+      <div className="flex gap-3 text-xs text-gray-500">
+        <span>Required: <strong className={requiredScore >= 70 ? "text-green-600" : "text-red-500"}>{requiredScore}%</strong></span>
+        <span>Technical: <strong className={technicalScore >= 70 ? "text-green-600" : "text-yellow-600"}>{technicalScore}%</strong></span>
+      </div>
+    </div>
+  );
+}
+
+// ---- Keyword Checklist (smart) ----
+function KeywordChecklist({ matches }: { matches: KeywordMatch[] }) {
+  const [filter, setFilter] = useState<"all" | "missing" | "found">("all");
+
+  const priority = matches.filter((m) => m.type === "required" || m.type === "technical");
+  const preferred = matches.filter((m) => m.type === "preferred" || m.type === "soft");
+
+  const show = (list: KeywordMatch[]) =>
+    list.filter((m) =>
+      filter === "all" ? true : filter === "missing" ? m.status === "missing" : m.status !== "missing"
+    );
+
+  const renderItem = (m: KeywordMatch) => (
+    <div key={`${m.type}-${m.keyword}`} className="flex items-center gap-2 text-sm">
+      <span
+        className={`w-4 h-4 rounded-full flex items-center justify-center text-xs flex-shrink-0 font-bold ${
+          m.status === "found"
+            ? "bg-green-100 text-green-600"
+            : m.status === "implicit"
+            ? "bg-yellow-100 text-yellow-600"
+            : "bg-red-100 text-red-500"
+        }`}
+      >
+        {m.status === "found" ? "✓" : m.status === "implicit" ? "~" : "✗"}
+      </span>
+      <span className={m.status === "missing" ? "text-gray-400" : "text-gray-700"}>{m.keyword}</span>
+      <span className={`text-xs ml-auto px-1 rounded ${
+        m.type === "required" ? "bg-red-50 text-red-400" :
+        m.type === "technical" ? "bg-blue-50 text-blue-400" :
+        "bg-gray-100 text-gray-400"
+      }`}>{m.type}</span>
+    </div>
+  );
+
+  if (matches.length === 0) return <p className="text-gray-400 text-sm">No keywords extracted</p>;
+
+  return (
+    <div>
+      {/* Legend */}
+      <div className="flex gap-3 text-xs text-gray-500 mb-2">
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-green-200 inline-block"/> Direct match</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-yellow-200 inline-block"/> Related term</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-200 inline-block"/> Missing</span>
+      </div>
+
+      {/* Filter */}
+      <div className="flex gap-1 mb-3">
+        {(["all", "missing", "found"] as const).map((f) => (
+          <button key={f} onClick={() => setFilter(f)}
+            className={`px-2 py-0.5 rounded text-xs capitalize transition-colors ${filter === f ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
+          >{f}</button>
+        ))}
+      </div>
+
+      <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+        {show(priority).length > 0 && (
+          <div className="space-y-1.5">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide pt-1">Required + Technical</div>
+            {show(priority).map(renderItem)}
           </div>
-        );
-      })}
-      {allKeywords.length === 0 && (
-        <p className="text-gray-400 text-sm">No keywords extracted</p>
-      )}
+        )}
+        {show(preferred).length > 0 && (
+          <div className="space-y-1.5 mt-3">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide pt-1">Preferred + Soft Skills</div>
+            {show(preferred).map(renderItem)}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -319,6 +378,24 @@ function ResumePreview({
           ))}
         </div>
       )}
+
+      {/* Certifications — only rendered when present, matching PDF output */}
+      {data.certifications && data.certifications.length > 0 && (
+        <div className="mb-5">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-900 border-b border-gray-300 pb-1 mb-2">
+            Certifications
+          </h2>
+          {data.certifications.map((cert, i) => (
+            <div key={i} className="mb-2 flex justify-between text-sm">
+              <div>
+                <span className="font-medium text-gray-900">{cert.name}</span>
+                {cert.issuer && <span className="text-gray-500"> · {cert.issuer}</span>}
+              </div>
+              {cert.date && <span className="text-gray-400 text-xs">{cert.date}</span>}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -386,6 +463,7 @@ export default function TailorReviewPage() {
 
   const handleRescore = async () => {
     setRescoring(true);
+    // Score just the narrative writing (summary + bullets + cover letter) — not skill names/tech stacks
     const textToScore = `${resumeData.summary || ""}\n${(resumeData.experiences || [])
       .flatMap((e) => e.bullets || [])
       .join("\n")}\n${coverLetter}`;
@@ -462,9 +540,13 @@ export default function TailorReviewPage() {
     );
   }
 
-  const allText = `${resumeData.summary || ""} ${(resumeData.experiences || [])
-    .flatMap((e) => e.bullets || [])
-    .join(" ")} ${coverLetter}`;
+  // Build full text from ALL resume sections — skills, projects, tech stacks, bullets, etc.
+  const fullResumeText = buildFullResumeText(resumeData, coverLetter);
+
+  // Smart keyword coverage using synonyms, stemming, and fuzzy matching
+  const kwAnalysis = keywords && (keywords.required?.length || keywords.technical?.length)
+    ? analyzeKeywordCoverage(resumeData, keywords, coverLetter)
+    : null;
 
   return (
     <div className="flex flex-col h-full">
@@ -638,10 +720,19 @@ export default function TailorReviewPage() {
             </div>
           )}
 
-          {/* Keywords */}
+          {/* Keyword Coverage Score */}
+          {kwAnalysis && (
+            <KeywordCoverageScore
+              score={kwAnalysis.coverageScore}
+              requiredScore={kwAnalysis.requiredScore}
+              technicalScore={kwAnalysis.technicalScore}
+            />
+          )}
+
+          {/* Keyword Checklist */}
           <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Keyword Coverage</h3>
-            <KeywordChecklist text={allText} keywords={keywords} />
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Keyword Checklist</h3>
+            <KeywordChecklist matches={kwAnalysis?.matches ?? []} />
           </div>
 
           {/* Download buttons */}

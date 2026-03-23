@@ -28,9 +28,26 @@ TASK:
    - Naturally incorporate keywords from the job description
    - Start with strong action verbs (varied, not repeated)
    - Include specific metrics and quantified results where possible
-   - Be 1-2 lines max per bullet
-4. Select the most relevant skills matching the JD
+   - One line per bullet, 12-16 words max
+4. Select ONLY skills that appear or are clearly implied by this specific job description
+   - Do NOT list every skill the candidate has — only what this job needs
+   - Max 4 categories, 6-8 skills per category
+   - Prioritize: technical tools/languages the JD lists > required skills > preferred
+   - Exclude generic soft skills unless the JD explicitly names them
 5. Generate a tailored professional summary (2-3 sentences)
+
+STRICT 2-PAGE LENGTH RULES — YOU MUST FOLLOW THESE EXACTLY:
+- Summary: 2-3 sentences, no exceptions
+- Experience: pick the 3-5 MOST relevant roles only — drop the rest
+- Bullets per role: 3-5 max. Prefer 4. Each bullet is ONE line, no wrapping
+- Projects: include ONLY 3-5 projects that are directly relevant to this job description
+  - If a project does not clearly demonstrate a skill the JD asks for, EXCLUDE it
+  - Project description: 1 sentence max (under 20 words)
+  - TechStack: list only, no sentences
+- Education: school, degree, and dates only — no extra detail
+- Certifications: only include if the JD explicitly asks for them
+- Skills: relevant only, no padding
+The final resume MUST fit on 2 pages or less. When in doubt, cut.
 
 OUTPUT: Return ONLY valid JSON in this exact structure:
 {
@@ -44,7 +61,7 @@ OUTPUT: Return ONLY valid JSON in this exact structure:
       "startDate": "string",
       "endDate": "string",
       "current": boolean,
-      "bullets": ["bullet 1", "bullet 2", ...]
+      "bullets": ["bullet 1", "bullet 2", "bullet 3", "bullet 4"]
     }
   ],
   "educations": [

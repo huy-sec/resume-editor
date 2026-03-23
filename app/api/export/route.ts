@@ -53,7 +53,7 @@ function buildResumeHTML(resumeData: any, profile: any): string {
     )
     .join("");
 
-  const projects = (resumeData.projects || [])
+  const projects = (resumeData.projects || []).slice(0, 5)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((proj: any) => `
     <div class="proj-entry">
@@ -71,33 +71,33 @@ function buildResumeHTML(resumeData: any, profile: any): string {
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: Arial, sans-serif; font-size: 10.5pt; color: #1a1a1a; }
-  h1 { font-size: 20pt; font-weight: 700; }
+  h1 { font-size: 19pt; font-weight: 700; }
   h2 {
-    font-size: 10pt; font-weight: 700; text-transform: uppercase;
+    font-size: 9.5pt; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.06em; border-bottom: 1.5px solid #1a1a1a;
-    padding-bottom: 2px; margin-bottom: 8px; margin-top: 14px;
+    padding-bottom: 2px; margin-bottom: 7px; margin-top: 12px;
     page-break-after: avoid; break-after: avoid;
   }
-  .contact { color: #444; font-size: 9.5pt; margin-top: 3px; }
+  .contact { color: #444; font-size: 9pt; margin-top: 3px; }
   .section-block {
     page-break-inside: avoid;
     break-inside: avoid;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
   .experience-entry {
     page-break-inside: avoid;
     break-inside: avoid;
-    margin-bottom: 14px;
+    margin-bottom: 11px;
   }
   .edu-entry {
     page-break-inside: avoid;
     break-inside: avoid;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   .proj-entry {
     page-break-inside: avoid;
     break-inside: avoid;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   .row { display: flex; justify-content: space-between; align-items: flex-start; }
   .font-semibold { font-weight: 600; }
@@ -105,13 +105,13 @@ function buildResumeHTML(resumeData: any, profile: any): string {
   .gray { color: #4b5563; }
   .light { color: #6b7280; }
   .blue { color: #2563eb; }
-  .small { font-size: 9.5pt; }
-  .xsmall { font-size: 9pt; }
+  .small { font-size: 9pt; }
+  .xsmall { font-size: 8.5pt; }
   .capitalize { text-transform: capitalize; }
-  ul { padding-left: 15px; margin-top: 5px; }
-  li { margin-bottom: 2px; line-height: 1.45; font-size: 10pt; }
-  .skill-row { margin-bottom: 3px; line-height: 1.5; }
-  p.summary { font-size: 10.5pt; line-height: 1.55; }
+  ul { padding-left: 14px; margin-top: 4px; }
+  li { margin-bottom: 1.5px; line-height: 1.4; font-size: 10pt; }
+  .skill-row { margin-bottom: 2px; line-height: 1.45; font-size: 10pt; }
+  p.summary { font-size: 10.5pt; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -133,6 +133,18 @@ function buildResumeHTML(resumeData: any, profile: any): string {
   ${educations ? `<h2>Education</h2>${educations}` : ""}
 
   ${skillsHTML ? `<h2>Skills</h2><div class="section-block">${skillsHTML}</div>` : ""}
+
+  ${(resumeData.certifications?.length) ? `<h2>Certifications</h2><div class="section-block">${
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (resumeData.certifications as any[]).map((c: any) => `
+      <div class="row edu-entry">
+        <div>
+          <div class="font-semibold">${c.name}</div>
+          ${c.issuer ? `<div class="gray small">${c.issuer}</div>` : ""}
+        </div>
+        ${c.date ? `<div class="light small" style="white-space:nowrap">${c.date}</div>` : ""}
+      </div>`).join("")
+  }</div>` : ""}
 </body>
 </html>`;
 }
@@ -210,6 +222,68 @@ function buildFileName(profile: any, tailored: any, type: string): string {
   return `${nameSlug}-${company}-${role}-${date}-${typeName}.pdf`;
 }
 
+/** Count pages in a PDF buffer by scanning for individual page objects */
+function countPDFPages(buf: Buffer): number {
+  // PDFs store the page count as /Count N inside the Pages dictionary.
+  // We scan for all occurrences and take the largest (the root Pages node).
+  const text = buf.toString("latin1");
+  let max = 1;
+  const re = /\/Count\s+(\d+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    const n = parseInt(m[1], 10);
+    if (n > max) max = n;
+  }
+  return max;
+}
+
+/** Generate a resume PDF, shrinking font size in 0.3pt steps until it fits maxPages. */
+async function buildFittedResumePDF(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  browser: any,
+  html: string,
+  margins: { top: string; bottom: string; left: string; right: string },
+  maxPages = 2
+): Promise<Buffer> {
+  const page = await browser.newPage();
+  let fontSize = 10.5;
+
+  for (let attempt = 0; attempt < 8; attempt++) {
+    // Inject current font-size override on every attempt after the first
+    const styledHtml =
+      attempt === 0
+        ? html
+        : html.replace(
+            "body { font-family: Arial, sans-serif; font-size: 10.5pt;",
+            `body { font-family: Arial, sans-serif; font-size: ${fontSize}pt;`
+          );
+
+    await page.setContent(styledHtml, { waitUntil: "networkidle0" });
+    const pdf = await page.pdf({ format: "Letter", printBackground: true, margin: margins });
+    const buf = Buffer.from(pdf);
+
+    if (countPDFPages(buf) <= maxPages) {
+      await page.close();
+      return buf;
+    }
+
+    fontSize = Math.max(8.0, +(fontSize - 0.3).toFixed(1));
+    if (fontSize <= 8.0) {
+      // At minimum font — return whatever we have
+      await page.close();
+      return buf;
+    }
+  }
+
+  await page.close();
+  // Fallback: return the last generated buffer
+  const fallbackPage = await browser.newPage();
+  await fallbackPage.setContent(html, { waitUntil: "networkidle0" });
+  const fallback = Buffer.from(await fallbackPage.pdf({ format: "Letter", printBackground: true, margin: margins }));
+  await fallbackPage.close();
+  return fallback;
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -236,10 +310,11 @@ export async function POST(req: NextRequest) {
     const COVER_MARGINS  = { top: "0.75in", bottom: "0.65in", left: "1in",    right: "1in"    };
 
     if (type === "resume") {
-      const page = await browser.newPage();
-      await page.setContent(buildResumeHTML(resumeData, profile), { waitUntil: "networkidle0" });
-      pdfBuffer = Buffer.from(
-        await page.pdf({ format: "Letter", printBackground: true, margin: RESUME_MARGINS })
+      pdfBuffer = await buildFittedResumePDF(
+        browser,
+        buildResumeHTML(resumeData, profile),
+        RESUME_MARGINS,
+        2
       );
     } else if (type === "cover") {
       const page = await browser.newPage();
@@ -249,18 +324,23 @@ export async function POST(req: NextRequest) {
       );
       pdfBuffer = Buffer.from(await page.pdf({ format: "Letter", printBackground: true, margin: COVER_MARGINS }));
     } else {
-      const page1 = await browser.newPage();
-      await page1.setContent(buildResumeHTML(resumeData, profile), { waitUntil: "networkidle0" });
-      const resume = await page1.pdf({ format: "Letter", printBackground: true, margin: RESUME_MARGINS });
+      // Resume: fitted to max 2 pages; cover letter: single page
+      const resume = await buildFittedResumePDF(
+        browser,
+        buildResumeHTML(resumeData, profile),
+        RESUME_MARGINS,
+        2
+      );
 
-      const page2 = await browser.newPage();
-      await page2.setContent(
+      const coverPage = await browser.newPage();
+      await coverPage.setContent(
         buildCoverLetterHTML(tailored.coverLetterText, profile, tailored.jobTitle, tailored.company),
         { waitUntil: "networkidle0" }
       );
-      const cover = await page2.pdf({ format: "Letter", printBackground: true, margin: COVER_MARGINS });
+      const cover = Buffer.from(await coverPage.pdf({ format: "Letter", printBackground: true, margin: COVER_MARGINS }));
+      await coverPage.close();
 
-      pdfBuffer = Buffer.concat([Buffer.from(resume), Buffer.from(cover)]);
+      pdfBuffer = Buffer.concat([resume, cover]);
     }
 
     return new NextResponse(pdfBuffer as unknown as BodyInit, {
