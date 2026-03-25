@@ -19,6 +19,7 @@ export interface KeywordMatch {
 // ── Synonym / abbreviation map ────────────────────────────────────────────────
 // Keys are canonical lowercase terms; values are aliases that count as a match
 const SYNONYMS: Record<string, string[]> = {
+  // ── Technical ──────────────────────────────────────────────────────────────
   javascript: ["js", "jsx", "es6", "es2015", "ecmascript", "node.js", "nodejs", "vue.js", "react.js", "next.js", "nextjs", "angular.js"],
   typescript: ["ts", "tsx"],
   python: ["py", "python3", "python2", "django", "flask", "fastapi", "pandas", "numpy", "scipy"],
@@ -54,9 +55,7 @@ const SYNONYMS: Record<string, string[]> = {
   html: ["html5", "markup", "semantic html", "web"],
   css: ["css3", "sass", "scss", "less", "tailwind", "bootstrap", "styled-components", "flexbox", "grid"],
   "data analysis": ["analytics", "data science", "tableau", "power bi", "excel", "pandas", "numpy", "matplotlib", "looker", "bi"],
-  "project management": ["pm", "program management", "pmp", "prince2", "roadmap", "delivery"],
-  communication: ["written communication", "verbal communication", "presentation", "stakeholder"],
-  leadership: ["team lead", "tech lead", "engineering manager", "people management", "mentoring", "coaching", "managed"],
+  "project management": ["pm", "program management", "pmp", "prince2", "roadmap", "delivery", "managed project", "coordinated"],
   testing: ["unit testing", "integration testing", "e2e", "jest", "pytest", "mocha", "cypress", "selenium", "qa", "quality assurance", "tdd", "bdd"],
   microservices: ["service mesh", "api gateway", "distributed systems", "event-driven", "kafka", "rabbitmq"],
   security: ["cybersecurity", "oauth", "jwt", "authentication", "authorization", "ssl", "tls", "encryption", "infosec"],
@@ -67,6 +66,114 @@ const SYNONYMS: Record<string, string[]> = {
   "data engineering": ["etl", "pipeline", "airflow", "spark", "hadoop", "data warehouse", "dbt"],
   figma: ["ui design", "ux design", "prototyping", "wireframing", "design system"],
   "product management": ["product owner", "roadmap", "user stories", "backlog", "product strategy"],
+
+  // ── Soft Skills — broad, verb-form, and noun-form variations ───────────────
+  communication: [
+    "communicated", "communicating", "communicates", "communicate",
+    "written communication", "verbal communication", "presentation", "presentations",
+    "stakeholder", "stakeholders", "messaging", "conveyed", "conveying",
+    "articulated", "articulating", "briefed", "briefing", "reported", "reporting",
+    "documented", "documenting", "explained", "explaining",
+  ],
+  collaboration: [
+    "collaborated", "collaborating", "collaborates", "collaborate",
+    "team player", "cross-functional", "cross functional", "teamwork",
+    "cooperated", "cooperating", "partnered", "partnering",
+    "worked with", "worked alongside", "joint", "jointly",
+  ],
+  leadership: [
+    "led", "lead", "leads", "leader", "leading",
+    "team lead", "tech lead", "engineering manager", "people management",
+    "mentoring", "mentored", "coaching", "coached",
+    "managed", "managing", "headed", "directed", "directing",
+    "oversaw", "oversee", "overseeing", "supervised", "supervising",
+    "guided", "guiding", "spearheaded", "drove", "driving",
+  ],
+  adaptability: [
+    "adapted", "adapting", "adapts", "adapt",
+    "flexible", "flexibility", "versatile", "versatility",
+    "pivoted", "pivoting", "adjusted", "adjusting",
+    "thrived in ambiguity", "fast-moving", "dynamic environment",
+  ],
+  "problem-solving": [
+    "problem solving", "troubleshot", "troubleshoot", "troubleshooting",
+    "diagnosed", "diagnosing", "resolved", "resolving", "resolution",
+    "debugged", "debugging", "analyzed", "analyzing", "analysis",
+    "investigated", "investigating", "root cause", "solutions",
+    "identified issues", "fixed", "fixing",
+  ],
+  "problem solving": [
+    "problem-solving", "troubleshot", "troubleshoot", "troubleshooting",
+    "diagnosed", "resolving", "resolution", "debugged", "analyzed",
+  ],
+  "attention to detail": [
+    "detail-oriented", "detail oriented", "meticulous", "thorough",
+    "precise", "precision", "accuracy", "accurate", "careful", "carefully",
+    "reviewed", "reviewing", "quality", "rigorous",
+  ],
+  analytical: [
+    "analysis", "analyzed", "analyzing", "data-driven", "data driven",
+    "metrics", "insights", "quantitative", "qualitative", "evaluated",
+    "evaluating", "assessment", "assessed", "research", "researched",
+  ],
+  "cross-functional": [
+    "cross functional", "cross-team", "cross team", "stakeholder",
+    "collaborated across", "worked across", "multiple teams", "interdisciplinary",
+    "partnered with", "coordinated with", "interfaced with",
+  ],
+  mentoring: [
+    "mentored", "mentor", "coaching", "coached", "trained", "training",
+    "guided", "onboarded", "onboarding", "developed team", "knowledge transfer",
+    "junior", "interns", "new hires",
+  ],
+  "time management": [
+    "prioritized", "prioritizing", "deadlines", "deadline", "on time",
+    "scheduling", "schedule", "managed time", "delivered on time",
+    "met deadlines", "organized", "organizing",
+  ],
+  ownership: [
+    "owned", "owning", "responsible for", "accountable", "end-to-end",
+    "full ownership", "drove", "spearheaded", "took initiative", "initiative",
+    "self-directed", "independently",
+  ],
+  innovation: [
+    "innovated", "innovative", "created", "built", "developed", "designed",
+    "invented", "conceived", "ideated", "brainstormed", "pioneered",
+    "introduced", "launched", "shipped", "released",
+  ],
+  "stakeholder management": [
+    "stakeholder", "stakeholders", "client", "clients", "executive",
+    "communicated with", "presented to", "reported to", "briefed",
+    "business partner", "business partners",
+  ],
+  "communication skills": [
+    "communicated", "communicating", "written", "verbal", "presentations",
+    "stakeholder", "articulated", "documented", "reported",
+  ],
+  teamwork: [
+    "team", "collaborated", "cross-functional", "cooperated", "partnered",
+    "joint", "collective", "together", "group",
+  ],
+  "critical thinking": [
+    "analyzed", "evaluated", "assessed", "reasoned", "logical",
+    "data-driven", "evidence-based", "research", "insights",
+  ],
+  creativity: [
+    "created", "designed", "built", "invented", "devised", "crafted",
+    "innovative", "novel", "original", "ideated", "brainstormed",
+  ],
+  initiative: [
+    "initiated", "self-directed", "proactive", "drove", "independently",
+    "took ownership", "without being asked", "identified opportunity",
+  ],
+  "decision making": [
+    "decided", "decision", "prioritized", "chose", "selected",
+    "evaluated options", "trade-offs", "tradeoffs", "judgment",
+  ],
+  organization: [
+    "organized", "organizing", "structured", "coordinated", "managed",
+    "tracked", "maintained", "documented", "systematic",
+  ],
 };
 
 // Build reverse lookup: alias → canonical
@@ -82,17 +189,24 @@ for (const [canonical, aliases] of Object.entries(SYNONYMS)) {
 const STOP_WORDS = new Set(["and", "the", "for", "with", "using", "via", "or", "in", "on", "at", "to", "of", "a", "an"]);
 
 function stem(word: string): string {
-  return word
-    .replace(/ings?$/, "")
-    .replace(/ations?$/, "ate")
-    .replace(/ments?$/, "ment")
-    .replace(/tions?$/, "tion")
-    .replace(/ers?$/, "")
-    .replace(/ing$/, "")
-    .replace(/tion$/, "")
-    .replace(/ment$/, "")
-    .replace(/s$/, "")
-    .replace(/ed$/, "");
+  let w = word.toLowerCase().trim();
+  // Apply exactly ONE suffix rule (most specific first) then strip trailing 'e'
+  // so "communication" → "communicat" and "communicated" → "communicat" both match
+  if (w.endsWith("ications") || w.endsWith("ication"))  w = w.replace(/ications?$/, "ic");
+  else if (w.endsWith("ations") || w.endsWith("ation")) w = w.replace(/ations?$/, "");
+  else if (w.endsWith("nesses") || w.endsWith("ness"))  w = w.replace(/nesses?$/, "");
+  else if (w.endsWith("ities") || w.endsWith("ity"))    w = w.replace(/iti(?:es|y)$/, "");
+  else if (w.endsWith("ments") || w.endsWith("ment"))   w = w.replace(/ments?$/, "");
+  else if (w.endsWith("tions") || w.endsWith("tion"))   w = w.replace(/tions?$/, "");
+  else if (w.endsWith("ings") || w.endsWith("ing"))     w = w.replace(/ings?$/, "");
+  else if (w.endsWith("ers") || w.endsWith("er"))       w = w.replace(/ers?$/, "");
+  else if (w.endsWith("est"))                           w = w.replace(/est$/, "");
+  else if (w.endsWith("ed"))                            w = w.replace(/ed$/, "");
+  else if (w.endsWith("ly"))                            w = w.replace(/ly$/, "");
+  else if (w.endsWith("s") && !w.endsWith("ss") && w.length > 4) w = w.replace(/s$/, "");
+  // Strip trailing 'e' for normalisation (communicate → communicat)
+  if (w.endsWith("e") && w.length > 4) w = w.slice(0, -1);
+  return w;
 }
 
 function tokenize(text: string): string[] {

@@ -22,19 +22,34 @@ JOB DESCRIPTION:
 ${jobDescription}
 
 TASK:
-1. Analyze the job description to identify: required skills, preferred skills, key responsibilities, company culture signals
-2. Select and reorder the most relevant experience entries, projects, and skills from the profile
+1. Analyze the job description to identify ALL keywords: required skills, preferred skills, soft skills, tools, methodologies, and key responsibilities
+
+2. KEYWORD COVERAGE STRATEGY — this is the most important step:
+   - Extract every meaningful keyword from the JD (technical AND soft)
+   - For EACH keyword, determine if it can honestly appear in the resume based on:
+     a) What the candidate explicitly listed in their profile, OR
+     b) What their job title IMPLIES they would have done (e.g., a "Team Lead" implies collaboration, mentoring, communication, planning; a "Software Engineer" implies problem-solving, code review, debugging, technical documentation)
+     c) What their projects demonstrate (e.g., a deployed web app implies ownership, full-stack thinking, user focus)
+   - The EXACT keyword (or a direct grammatical form of it, e.g. "collaborate" → "collaborated") MUST appear literally in the resume text — in bullets, summary, or skills
+   - Do NOT paraphrase keywords — ATS systems scan for the exact word. Write bullets that contain the keyword naturally in context.
+   - Soft skill keywords (e.g., "communication", "collaboration", "leadership", "analytical", "attention to detail", "problem-solving", "adaptability", "cross-functional"): embed the EXACT word into a bullet that describes a real action implied by their role. Example: if JD says "communication" and the person was a Team Lead, write "Maintained clear communication with stakeholders across design, product, and engineering teams during sprint planning."
+   - Technical keywords: if the person's job title or projects strongly imply they worked with a technology (even if not explicitly listed), include it in skills and reference it in a bullet where appropriate. Be honest — don't fabricate specific experience, but do infer reasonable skills from context.
+
 3. Rewrite experience bullets to:
-   - Naturally incorporate keywords from the job description
-   - Start with strong action verbs (varied, not repeated)
+   - Start with strong, varied action verbs — never repeat the same verb twice
+   - Embed JD keywords naturally — the exact word must appear
    - Include specific metrics and quantified results where possible
    - One line per bullet, 12-16 words max
-4. Select ONLY skills that appear or are clearly implied by this specific job description
-   - Do NOT list every skill the candidate has — only what this job needs
-   - Max 4 categories, 6-8 skills per category
-   - Prioritize: technical tools/languages the JD lists > required skills > preferred
-   - Exclude generic soft skills unless the JD explicitly names them
-5. Generate a tailored professional summary (2-3 sentences)
+   - Each bullet should feel like something a real person in that job title actually did
+
+4. Skills section:
+   - Include skills from the JD that are covered by the candidate's explicit skills OR clearly implied by their job titles/projects
+   - Be FLEXIBLE: a Frontend Developer who built React apps almost certainly knows about responsive design, component architecture, state management — include these if the JD asks for them
+   - Soft skills: include in skills if the JD lists them AND the candidate's roles clearly involve them
+   - Max 4 categories, 5-8 skills per category
+   - Every skill listed MUST also appear somewhere in the resume body (bullet or summary)
+
+5. Generate a tailored professional summary (2-3 sentences) that naturally uses 3-5 of the top JD keywords
 
 STRICT 2-PAGE LENGTH RULES — YOU MUST FOLLOW THESE EXACTLY:
 - Summary: 2-3 sentences, no exceptions
@@ -312,10 +327,11 @@ Analyze the fit between the profile and JD, then return ONLY valid JSON:
 }`;
 }
 
-export function buildTailorPromptWithApproach(profileJSON: string, jobDescription: string, approach: TailorApproach, writingStyleExample?: string, personalityContext?: string): string {
+export function buildTailorPromptWithApproach(profileJSON: string, jobDescription: string, approach: TailorApproach, writingStyleExample?: string, personalityContext?: string, userNotes?: string): string {
   const approachConfig = APPROACH_DESCRIPTIONS[approach];
   const styleSection = writingStyleExample ? `\nUSER'S WRITING STYLE EXAMPLE (match this tone and voice closely):\n${writingStyleExample}\n` : "";
   const personalitySection = personalityContext ? `\n${personalityContext}\n` : "";
+  const notesSection = userNotes ? `\nUSER INSTRUCTIONS — FOLLOW THESE EXACTLY (these override defaults where they conflict):\n${userNotes}\n` : "";
 
   return `You are an expert resume writer and ATS optimization specialist. Your job is to tailor a resume for a specific job posting.
 
@@ -327,7 +343,7 @@ WHY THE CANDIDATE IS APPLYING (weave this narrative into the summary and tone):
 
 APPROACH EXECUTION INSTRUCTIONS:
 ${approachConfig.instruction}
-${styleSection}${personalitySection}
+${styleSection}${personalitySection}${notesSection}
 PROFILE DATA:
 ${profileJSON}
 
@@ -335,13 +351,36 @@ JOB DESCRIPTION:
 ${jobDescription}
 
 TASK:
-1. Analyze the job description to identify: required skills, preferred skills, key responsibilities, company culture signals
-2. Apply the "${approachConfig.label}" approach consistently — the summary especially should reflect the "why" narrative above
-3. Select and reorder the most relevant experience entries, projects, and skills from the profile
-4. Rewrite experience bullets following the approach — specific, concrete, human, with metrics wherever possible
-5. Generate a tailored professional summary (2-3 sentences) that reflects both the approach narrative AND the candidate's actual background
+1. Extract ALL keywords from the JD: required skills, preferred skills, soft skills, methodologies, tools, and key responsibilities
 
-CRITICAL: Every bullet must include at least one of: a number, a percentage, a timeframe, a team size, or a named technology. Generic bullets with no specifics are not acceptable.
+2. KEYWORD COVERAGE STRATEGY — most important step:
+   - For EACH keyword, determine if it can honestly be placed in the resume based on:
+     a) What the candidate explicitly listed in their profile, OR
+     b) What their job title IMPLIES they would have done (e.g., "Team Lead" implies collaboration, mentoring, communication, sprint planning, stakeholder updates; "Software Engineer" implies debugging, code review, technical documentation, problem-solving, testing)
+     c) What their projects demonstrate (e.g., a shipped product implies ownership, user empathy, iteration)
+   - The EXACT keyword (or direct grammatical form) MUST appear literally in the resume text — in bullets, summary, or skills
+   - Soft skill keywords (communication, collaboration, leadership, analytical, adaptability, cross-functional, etc.): embed the exact word into a bullet describing a real action that role would do. Example: if JD lists "communication" and the person is a Developer, write "Maintained clear communication with product and design teams to clarify requirements before each sprint."
+   - Technical keywords: if the role or projects imply familiarity, include in skills and reference in a bullet
+   - Be flexible but honest — infer reasonable skills from job title context, do not fabricate specific certifications or technologies never touched
+
+3. Apply the "${approachConfig.label}" approach consistently — the summary especially should reflect the "why" narrative above
+
+4. Rewrite bullets following the approach:
+   - Embed JD keywords naturally — exact word must appear
+   - Start with strong, varied action verbs — never repeat the same verb
+   - Every bullet must include at least one: number, percentage, timeframe, team size, or named technology
+   - One line per bullet, 12-16 words max
+   - Sound like a real person who held that job title, not a template
+
+5. Skills section:
+   - Include skills from the JD covered by explicit profile data OR clearly implied by job titles/projects
+   - Every skill listed MUST also appear in the body (bullet or summary)
+   - Max 4 categories, 5-8 skills per category
+   - Soft skills: include if JD asks for them and the candidate's roles clearly involve them
+
+6. Generate a tailored professional summary (2-3 sentences) using 3-5 top JD keywords naturally, reflecting the approach narrative
+
+7. Select 3-5 most relevant projects only — exclude anything not directly relevant to this JD
 
 Make the resume sound like a real person wrote it — with personality, specific details, and natural language. Avoid corporate speak.
 
@@ -485,18 +524,28 @@ export function buildPersonalityContext(profile: {
 }
 
 export function buildKeywordPrompt(jobDescription: string): string {
-  return `Extract keywords and requirements from this job description for ATS optimization.
+  return `Extract every meaningful keyword from this job description for ATS optimization and keyword coverage scoring.
 
 JOB DESCRIPTION:
 ${jobDescription}
 
+Rules:
+- Extract the EXACT words/phrases as they appear in the JD — ATS systems match on exact words
+- For soft skills, extract the exact noun form (e.g., "communication", "collaboration", "leadership", "adaptability", "attention to detail") — not the sentence they appear in
+- For technical keywords, include the exact tool/language/framework name as written
+- Include all keywords even if they seem obvious — every one counts for ATS scoring
+- "required" = explicitly stated as required / must-have
+- "preferred" = stated as preferred, nice-to-have, bonus, or plus
+- "technical" = specific named technologies, tools, languages, platforms, frameworks, methodologies (Agile, Scrum, etc.)
+- "soft" = interpersonal, behavioral, or cognitive skills (communication, teamwork, problem-solving, etc.)
+
 Return ONLY valid JSON:
 {
-  "required": ["skill or requirement that is clearly required"],
-  "preferred": ["skill or requirement that is preferred/nice-to-have"],
-  "technical": ["specific technologies, tools, languages, frameworks"],
-  "soft": ["soft skills mentioned"],
-  "jobTitle": "the exact job title",
-  "company": "company name if mentioned"
+  "required": ["exact keyword as written in JD"],
+  "preferred": ["exact keyword as written in JD"],
+  "technical": ["exact technology/tool name"],
+  "soft": ["exact soft skill word or phrase"],
+  "jobTitle": "the exact job title from the posting",
+  "company": "company name if mentioned, empty string if not"
 }`;
 }

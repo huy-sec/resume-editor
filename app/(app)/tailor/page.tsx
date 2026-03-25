@@ -33,6 +33,7 @@ export default function TailorPage() {
 
   // Step 2 state
   const [approach, setApproach] = useState<TailorApproach>("career-momentum");
+  const [notes, setNotes] = useState("");
   const [building, setBuilding] = useState(false);
   const [statusIndex, setStatusIndex] = useState(0);
   const [buildError, setBuildError] = useState("");
@@ -70,7 +71,7 @@ export default function TailorPage() {
       const res = await fetch("/api/tailor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobDescription, approach }),
+        body: JSON.stringify({ jobDescription, approach, notes: notes.trim() || undefined }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -201,6 +202,23 @@ export default function TailorPage() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Additional notes */}
+          <div className="mt-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Additional Instructions <span className="font-normal text-gray-400">(optional)</span>
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              Tell Claude anything specific — emphasize certain skills, downplay gaps, focus on a project, adjust tone, or anything else you want reflected in the resume.
+            </p>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+              className="w-full p-3 border border-gray-300 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={`e.g. "Emphasize my work on the payment system project. I don't have formal React experience but I've built several apps with it — include it. Keep the tone confident but not boastful."`}
+            />
           </div>
 
           {buildError && (

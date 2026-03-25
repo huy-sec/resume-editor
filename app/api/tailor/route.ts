@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { jobDescription, approach } = await req.json();
+  const { jobDescription, approach, notes } = await req.json();
   if (!jobDescription?.trim()) return NextResponse.json({ error: "No job description" }, { status: 400 });
 
   const selectedApproach: TailorApproach = approach || "achievement-focused";
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   const keywords = extractJSON(keywordResponse) as any;
 
   // 2. Tailor resume
-  const tailorResponse = await callClaude(buildTailorPromptWithApproach(profileJSON, jobDescription, selectedApproach, writingStyleExample, personalityContext));
+  const tailorResponse = await callClaude(buildTailorPromptWithApproach(profileJSON, jobDescription, selectedApproach, writingStyleExample, personalityContext, notes));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resumeJSON = extractJSON(tailorResponse) as any;
 

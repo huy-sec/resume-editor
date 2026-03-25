@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
+import { PDFDocument } from "pdf-lib";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildResumeHTML(resumeData: any, profile: any): string {
@@ -325,7 +326,8 @@ export async function POST(req: NextRequest) {
       pdfBuffer = Buffer.from(await page.pdf({ format: "Letter", printBackground: true, margin: COVER_MARGINS }));
     } else {
       // Resume: fitted to max 2 pages; cover letter: single page
-      const resume = await buildFittedResumePDF(
+      // Merge using pdf-lib so both documents share one valid PDF structure
+      const resumeBytes = await buildFittedResumePDF(
         browser,
         buildResumeHTML(resumeData, profile),
         RESUME_MARGINS,
@@ -337,10 +339,23 @@ export async function POST(req: NextRequest) {
         buildCoverLetterHTML(tailored.coverLetterText, profile, tailored.jobTitle, tailored.company),
         { waitUntil: "networkidle0" }
       );
-      const cover = Buffer.from(await coverPage.pdf({ format: "Letter", printBackground: true, margin: COVER_MARGINS }));
+      const coverBytes = Buffer.from(
+        await coverPage.pdf({ format: "Letter", printBackground: true, margin: COVER_MARGINS })
+      );
       await coverPage.close();
 
-      pdfBuffer = Buffer.concat([resume, cover]);
+      // Proper PDF merge — copy all pages from both docs into one
+      const merged = await PDFDocument.create();
+      const resumeDoc = await PDFDocument.load(resumeBytes);
+      const coverDoc = await PDFDocument.load(coverBytes);
+
+      const coverPages = await merged.copyPages(coverDoc, coverDoc.getPageIndices());
+      coverPages.forEach((p) => merged.addPage(p));
+
+      const resumePages = await merged.copyPages(resumeDoc, resumeDoc.getPageIndices());
+      resumePages.forEach((p) => merged.addPage(p));
+
+      pdfBuffer = Buffer.from(await merged.save());
     }
 
     return new NextResponse(pdfBuffer as unknown as BodyInit, {
