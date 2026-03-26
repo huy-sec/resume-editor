@@ -221,6 +221,41 @@ export default function TailorPage() {
             />
           </div>
 
+          {/* Advanced Options */}
+          <details className="mt-6 group">
+            <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700 select-none flex items-center gap-1 list-none">
+              <span className="group-open:rotate-90 inline-block transition-transform text-xs">▶</span>
+              Advanced Options — view prompt instructions
+            </summary>
+            <div className="mt-3 bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+              <div>
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                  Approach: {APPROACH_DESCRIPTIONS[approach].label}
+                </div>
+                <div className="text-xs text-gray-600 italic mb-2">
+                  &ldquo;{APPROACH_DESCRIPTIONS[approach].whyApply}&rdquo;
+                </div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Execution Instructions</div>
+                <pre className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed font-sans bg-white border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto">
+                  {APPROACH_DESCRIPTIONS[approach].instruction}
+                </pre>
+              </div>
+              {notes.trim() && (
+                <div>
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Your Additional Instructions</div>
+                  <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans bg-white border border-gray-200 rounded-lg p-3">
+                    {notes}
+                  </pre>
+                </div>
+              )}
+              <p className="text-xs text-gray-400">
+                + your full profile (experience, skills, projects) and the job description above are also sent.
+              </p>
+            </div>
+          </details>
+
           {buildError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
               {buildError}

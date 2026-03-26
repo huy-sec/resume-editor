@@ -428,6 +428,9 @@ export default function TailorReviewPage() {
   const [downloading, setDownloading] = useState<string | null>(null);
   const [humanizing, setHumanizing] = useState(false);
   const [humanizeMessage, setHumanizeMessage] = useState("");
+  const [rebuildInstructions, setRebuildInstructions] = useState("");
+  const [rebuilding, setRebuilding] = useState(false);
+  const [rebuildMessage, setRebuildMessage] = useState("");
 
   const fetchData = useCallback(async () => {
     const res = await fetch(`/api/tailor/${id}`);
@@ -501,6 +504,34 @@ export default function TailorReviewPage() {
       setHumanizeMessage(e instanceof Error ? e.message : "Humanize failed");
     } finally {
       setHumanizing(false);
+    }
+  };
+
+  const handleRebuild = async () => {
+    if (!rebuildInstructions.trim()) return;
+    setRebuilding(true);
+    setRebuildMessage("");
+    try {
+      const res = await fetch("/api/tailor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobDescription: data?.jobDescription,
+          approach: (resumeData as ResumeData & { approach?: string }).approach || "career-momentum",
+          notes: rebuildInstructions.trim(),
+          updateId: id,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error);
+      await fetchData();
+      setRebuildInstructions("");
+      setRebuildMessage("Rebuilt! Review the updated content above.");
+      setTimeout(() => setRebuildMessage(""), 4000);
+    } catch (e: unknown) {
+      setRebuildMessage(e instanceof Error ? e.message : "Rebuild failed");
+    } finally {
+      setRebuilding(false);
     }
   };
 
@@ -733,6 +764,33 @@ export default function TailorReviewPage() {
           <div className="bg-white border border-gray-200 rounded-xl p-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Keyword Checklist</h3>
             <KeywordChecklist matches={kwAnalysis?.matches ?? []} />
+          </div>
+
+          {/* Additional Instructions / Rebuild */}
+          <div className="bg-white border border-gray-200 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-1">Additional Instructions</h3>
+            <p className="text-xs text-gray-400 mb-2">
+              Add notes and rebuild — emphasize a skill, tweak tone, include a project, fix anything.
+            </p>
+            <textarea
+              value={rebuildInstructions}
+              onChange={(e) => setRebuildInstructions(e.target.value)}
+              rows={3}
+              className="w-full p-2 border border-gray-300 rounded-lg text-xs resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={`e.g. "Emphasize my leadership of the API migration. Add TypeScript to skills. Make the cover letter less formal."`}
+            />
+            <button
+              onClick={handleRebuild}
+              disabled={rebuilding || !rebuildInstructions.trim()}
+              className="w-full mt-2 bg-violet-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-violet-700 disabled:opacity-50 transition-colors font-medium"
+            >
+              {rebuilding ? "Rebuilding..." : "Rebuild with Instructions"}
+            </button>
+            {rebuildMessage && (
+              <p className={`text-xs mt-2 text-center font-medium ${rebuildMessage.startsWith("Rebuilt") ? "text-green-600" : "text-red-500"}`}>
+                {rebuildMessage}
+              </p>
+            )}
           </div>
 
           {/* Download buttons */}

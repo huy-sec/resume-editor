@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { jobDescription, approach, notes } = await req.json();
+  const { jobDescription, approach, notes, updateId } = await req.json();
   if (!jobDescription?.trim()) return NextResponse.json({ error: "No job description" }, { status: 400 });
 
   const selectedApproach: TailorApproach = approach || "achievement-focused";
@@ -73,19 +73,30 @@ export async function POST(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const scoreData = extractJSON(scoreResponse) as any;
 
-  // Save to DB
+  const payload = {
+    jobTitle: resumeJSON.jobTitle || keywords.jobTitle || "",
+    company: resumeJSON.company || keywords.company || "",
+    jobDescription,
+    resumeJSON: JSON.stringify(resumeJSON),
+    coverLetterText,
+    humanizationScore: scoreData.score || 0,
+    scoreFlags: JSON.stringify(scoreData.flags || []),
+    keywords: JSON.stringify(keywords),
+  };
+
+  // If updateId provided, update existing record in-place (rebuild from review page)
+  if (updateId) {
+    const existing = await prisma.tailoredResume.findFirst({
+      where: { id: updateId, userId: session.user.id },
+    });
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    await prisma.tailoredResume.update({ where: { id: updateId }, data: payload });
+    return NextResponse.json({ id: updateId });
+  }
+
+  // Otherwise create new record
   const tailored = await prisma.tailoredResume.create({
-    data: {
-      userId: session.user.id,
-      jobTitle: resumeJSON.jobTitle || keywords.jobTitle || "",
-      company: resumeJSON.company || keywords.company || "",
-      jobDescription,
-      resumeJSON: JSON.stringify(resumeJSON),
-      coverLetterText,
-      humanizationScore: scoreData.score || 0,
-      scoreFlags: JSON.stringify(scoreData.flags || []),
-      keywords: JSON.stringify(keywords),
-    },
+    data: { userId: session.user.id, ...payload },
   });
 
   return NextResponse.json({ id: tailored.id });
