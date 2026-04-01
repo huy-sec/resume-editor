@@ -25,6 +25,15 @@ Versioning scheme:
 
 ---
 
+## [1.4.1] — 2026-04-01
+### Fix dashboard status button hang on error
+**Scale: Patch** — bug fix
+
+- Wrapped fetch in `try/finally` so `setSaving(false)` always runs even if the request fails
+- Previously: any fetch error left `saving = true` permanently, disabling all status buttons until page reload
+
+---
+
 ## [1.3.1] — 2026-04-01
 ### Fix Prisma client not regenerated after migration
 **Scale: Patch** — runtime fix, no code change

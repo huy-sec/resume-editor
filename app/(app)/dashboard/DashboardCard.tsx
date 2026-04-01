@@ -33,12 +33,15 @@ export default function DashboardCard({
     setSaving(true);
     const newStatus = next === status ? "" : next; // toggle off if same
     setStatus(newStatus as Status);
-    await fetch(`/api/resumes/${id}/status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    setSaving(false);
+    try {
+      await fetch(`/api/resumes/${id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   const cfg = STATUS_CONFIG[status];
