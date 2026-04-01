@@ -7,6 +7,27 @@ Versioning scheme:
 
 ---
 
+## [1.4.4] — 2026-04-01
+### Fix Reports page hang at launch (Server Component ssr:false)
+**Scale: Patch** — SSR architecture fix
+
+- `next/dynamic` with `ssr: false` cannot be used inside Server Components — causes a build error and app hang
+- Fixed by introducing `ReportChartsWrapper.tsx` as a `"use client"` component that wraps the dynamic import
+- `reports/page.tsx` (Server Component) now imports `ReportChartsWrapper` instead of calling `dynamic` directly
+- This is the correct Next.js pattern: dynamic imports with `ssr: false` must live inside client components
+
+---
+
+## [1.4.3] — 2026-04-01
+### Fix TypeScript errors in ReportCharts breaking build
+**Scale: Patch** — type annotation fix
+
+- Recharts `Tooltip` formatter callbacks typed as `(v: number)` were incompatible with the library's `ValueType | undefined` signature (TS2322)
+- Removed explicit type annotations from all tooltip formatter callbacks so TypeScript infers the correct type
+- Build errors were causing the entire app (including dashboard) to fail, not just the reports page
+
+---
+
 ## [1.4.0] — 2026-04-01
 ### Reports tab with analytics charts
 **Scale: Minor** — new full page with charts, no schema changes
