@@ -125,7 +125,7 @@ export default function ReportCharts({ data }: { data: ReportData }) {
                   <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
                   <YAxis type="category" dataKey="approach" tick={{ fontSize: 10 }} width={130}
                     tickFormatter={(v: string) => v.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())} />
-                  <Tooltip formatter={(v: number) => [v, "Count"]} />
+                  <Tooltip formatter={(v) => [v, "Count"]} />
                   <Bar dataKey="total" radius={[0, 4, 4, 0]}>
                     {data.approachStats.map((entry) => (
                       <Cell key={entry.approach} fill={APPROACH_COLORS[entry.approach] ?? BLUE} />
@@ -145,7 +145,7 @@ export default function ReportCharts({ data }: { data: ReportData }) {
                   <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
                   <YAxis type="category" dataKey="approach" tick={{ fontSize: 10 }} width={130}
                     tickFormatter={(v: string) => v.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())} />
-                  <Tooltip formatter={(v: number) => [`${v}%`, "Interview rate"]} />
+                  <Tooltip formatter={(v) => [`${v}%`, "Interview rate"]} />
                   <Bar dataKey="rate" radius={[0, 4, 4, 0]}>
                     {data.approachStats.map((entry) => (
                       <Cell key={entry.approach} fill={entry.rate >= 50 ? GREEN : entry.rate >= 25 ? "#f59e0b" : GRAY} />
@@ -211,7 +211,7 @@ export default function ReportCharts({ data }: { data: ReportData }) {
                 <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11 }} />
                 <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 9 }} />
                 <Radar name="Your avg" dataKey="value" stroke={PURPLE} fill={PURPLE} fillOpacity={0.25} />
-                <Tooltip formatter={(v: number) => [`${v}%`]} />
+                <Tooltip formatter={(v) => [`${v}%`]} />
               </RadarChart>
             </ResponsiveContainer>
           )}

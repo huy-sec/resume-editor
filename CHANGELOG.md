@@ -25,6 +25,16 @@ Versioning scheme:
 
 ---
 
+## [1.4.2] — 2026-04-01
+### Fix Reports page crash on navigation
+**Scale: Patch** — SSR fix
+
+- Recharts uses browser-only APIs (`window`, `document`) that throw during Next.js server-side rendering
+- Even though `ReportCharts` has `"use client"`, Next.js still SSRs it by default
+- Fixed by dynamically importing with `ssr: false` so charts only render in the browser
+
+---
+
 ## [1.4.1] — 2026-04-01
 ### Fix dashboard status button hang on error
 **Scale: Patch** — bug fix
