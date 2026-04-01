@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import ReportCharts from "./ReportCharts";
+import dynamic from "next/dynamic";
+
+const ReportCharts = dynamic(() => import("./ReportCharts"), { ssr: false });
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
