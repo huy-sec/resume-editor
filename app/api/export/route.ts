@@ -4,8 +4,37 @@ import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 import { PDFDocument } from "pdf-lib";
 
+/** Cybersecurity-specific cert/edu keywords — used as a safety-net filter */
+const CYBER_CERT_KEYWORDS = ["security+", "ceh", "cissp", "ejpt", "oscp", "cism", "gpen", "gwapt", "gcih", "gsec", "pentest", "ethical hack", "red team", "blue team", "soc analyst", "comptia security", "network+"];
+const CYBER_EDU_KEYWORDS  = ["cybersecurity", "cyber security", "information security", "network security", "ethical hacking", "penetration testing"];
+
+function isCyberRole(jobTitle: string): boolean {
+  const t = (jobTitle || "").toLowerCase();
+  return ["cyber", "security", "infosec", "penetration", "pentest", "soc ", "threat", "incident response", "forensic", "vulnerability", "malware", "red team", "blue team"].some((k) => t.includes(k));
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildResumeHTML(resumeData: any, profile: any): string {
+  // Determine whether to show GitHub — Claude signals this via includeGithub; fall back to job-title detection
+  const showGithub =
+    resumeData.includeGithub !== undefined
+      ? !!resumeData.includeGithub
+      : isCyberRole(resumeData.jobTitle || "");
+
+  // Safety-net: if not a cyber role, strip cyber-specific certs and edu
+  const isNonCyber = !isCyberRole(resumeData.jobTitle || "");
+  const filteredCerts = isNonCyber
+    ? (resumeData.certifications || []).filter(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (c: any) => !CYBER_CERT_KEYWORDS.some((k) => (c.name || "").toLowerCase().includes(k))
+      )
+    : resumeData.certifications || [];
+  const filteredEdu = isNonCyber
+    ? (resumeData.educations || []).filter(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (e: any) => !CYBER_EDU_KEYWORDS.some((k) => (e.field || "").toLowerCase().includes(k) || (e.degree || "").toLowerCase().includes(k))
+      )
+    : resumeData.educations || [];
   const experiences = (resumeData.experiences || [])
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((exp: any) => `
@@ -24,7 +53,7 @@ function buildResumeHTML(resumeData: any, profile: any): string {
   `)
     .join("");
 
-  const educations = (resumeData.educations || [])
+  const educations = filteredEdu
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((edu: any) => `
     <div class="edu-entry">
@@ -118,8 +147,8 @@ function buildResumeHTML(resumeData: any, profile: any): string {
 <body>
   <div class="section-block">
     <h1>${profile?.name || resumeData.name || "Name"}</h1>
-    <div class="contact">
-      ${[profile?.email, profile?.phone, profile?.location, profile?.linkedIn, profile?.github]
+    <div class="contact" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+      ${[profile?.email, profile?.phone, profile?.location, profile?.linkedIn, showGithub ? profile?.github : null]
         .filter(Boolean)
         .join(" &nbsp;|&nbsp; ")}
     </div>
@@ -135,9 +164,9 @@ function buildResumeHTML(resumeData: any, profile: any): string {
 
   ${skillsHTML ? `<h2>Skills</h2><div class="section-block">${skillsHTML}</div>` : ""}
 
-  ${(resumeData.certifications?.length) ? `<h2>Certifications</h2><div class="section-block">${
+  ${(filteredCerts?.length) ? `<h2>Certifications</h2><div class="section-block">${
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (resumeData.certifications as any[]).map((c: any) => `
+    (filteredCerts as any[]).map((c: any) => `
       <div class="row edu-entry">
         <div>
           <div class="font-semibold">${c.name}</div>
@@ -259,7 +288,7 @@ async function buildFittedResumePDF(
             `body { font-family: Arial, sans-serif; font-size: ${fontSize}pt;`
           );
 
-    await page.setContent(styledHtml, { waitUntil: "networkidle0" });
+    await page.setContent(styledHtml, { waitUntil: "domcontentloaded", timeout: 60000 });
     const pdf = await page.pdf({ format: "Letter", printBackground: true, margin: margins });
     const buf = Buffer.from(pdf);
 
@@ -279,7 +308,7 @@ async function buildFittedResumePDF(
   await page.close();
   // Fallback: return the last generated buffer
   const fallbackPage = await browser.newPage();
-  await fallbackPage.setContent(html, { waitUntil: "networkidle0" });
+  await fallbackPage.setContent(html, { waitUntil: "domcontentloaded", timeout: 60000 });
   const fallback = Buffer.from(await fallbackPage.pdf({ format: "Letter", printBackground: true, margin: margins }));
   await fallbackPage.close();
   return fallback;
@@ -321,7 +350,7 @@ export async function POST(req: NextRequest) {
       const page = await browser.newPage();
       await page.setContent(
         buildCoverLetterHTML(tailored.coverLetterText, profile, tailored.jobTitle, tailored.company),
-        { waitUntil: "networkidle0" }
+        { waitUntil: "domcontentloaded", timeout: 60000 }
       );
       pdfBuffer = Buffer.from(await page.pdf({ format: "Letter", printBackground: true, margin: COVER_MARGINS }));
     } else {
@@ -337,7 +366,7 @@ export async function POST(req: NextRequest) {
       const coverPage = await browser.newPage();
       await coverPage.setContent(
         buildCoverLetterHTML(tailored.coverLetterText, profile, tailored.jobTitle, tailored.company),
-        { waitUntil: "networkidle0" }
+        { waitUntil: "domcontentloaded", timeout: 60000 }
       );
       const coverBytes = Buffer.from(
         await coverPage.pdf({ format: "Letter", printBackground: true, margin: COVER_MARGINS })

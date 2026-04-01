@@ -55,19 +55,25 @@ STRICT 2-PAGE LENGTH RULES — YOU MUST FOLLOW THESE EXACTLY:
 - Summary: 2-3 sentences, no exceptions
 - Experience: pick the 3-5 MOST relevant roles only — drop the rest
 - Bullets per role: 3-5 max. Prefer 4. Each bullet is ONE line, no wrapping
+- Bullet relevance: every bullet MUST either contain a JD keyword OR directly demonstrate a skill the JD requires. Remove any bullet that does not serve those criteria.
 - Projects: include ONLY 3-5 projects that are directly relevant to this job description
   - If a project does not clearly demonstrate a skill the JD asks for, EXCLUDE it
   - Project description: 1 sentence max (under 20 words)
   - TechStack: list only, no sentences
 - Education: school, degree, and dates only — no extra detail
-- Certifications: only include if the JD explicitly asks for them
+- Certifications: only include if the JD explicitly asks for them OR they are broadly relevant to the role
 - Skills: relevant only, no padding
 The final resume MUST fit on 2 pages or less. When in doubt, cut.
+
+FIELD-SPECIFIC FILTERING RULES:
+- If the job role is NOT in cybersecurity / information security / penetration testing: EXCLUDE all cybersecurity-specific certifications (e.g. Security+, CEH, CISSP, eJPT, OSCP, CISM, and similar). Also exclude cybersecurity-specific education entries (e.g. coursework in ethical hacking, network security, infosec). Also set "includeGithub": false in the output.
+- If the job role IS in cybersecurity / information security: include all relevant security certifications and education. Set "includeGithub": true.
 
 OUTPUT: Return ONLY valid JSON in this exact structure:
 {
   "jobTitle": "detected job title from JD",
   "company": "detected company name from JD or empty string",
+  "includeGithub": true,
   "summary": "2-3 sentence tailored summary",
   "experiences": [
     {
@@ -382,12 +388,19 @@ TASK:
 
 7. Select 3-5 most relevant projects only — exclude anything not directly relevant to this JD
 
+8. Bullet relevance: every bullet MUST either contain a JD keyword OR directly demonstrate a skill the JD requires. Cut any bullet that does not qualify.
+
+9. FIELD-SPECIFIC FILTERING RULES:
+   - If the job role is NOT in cybersecurity / information security / penetration testing: EXCLUDE all cybersecurity-specific certifications (e.g. Security+, CEH, CISSP, eJPT, OSCP, CISM, and similar). Also exclude cybersecurity-specific education entries. Set "includeGithub": false.
+   - If the job role IS in cybersecurity / information security: include all relevant security certifications and education. Set "includeGithub": true.
+
 Make the resume sound like a real person wrote it — with personality, specific details, and natural language. Avoid corporate speak.
 
 OUTPUT: Return ONLY valid JSON in this exact structure:
 {
   "jobTitle": "detected job title from JD",
   "company": "detected company name from JD or empty string",
+  "includeGithub": true,
   "summary": "2-3 sentence tailored summary",
   "approach": "${approach}",
   "experiences": [
