@@ -7,6 +7,32 @@ Versioning scheme:
 
 ---
 
+## [1.4.0] — 2026-04-01
+### Reports tab with analytics charts
+**Scale: Minor** — new full page with charts, no schema changes
+
+- Added `/reports` page to the sidebar nav
+- Installed `recharts` for client-side chart rendering
+- KPI row: total applications, interview rate, offer rate, avg human score, avg keyword score
+- Application volume over time — line chart (applications / interviews / offers per month)
+- Approach effectiveness — two side-by-side bar charts: volume by approach and interview rate % by approach
+- Human score vs interview rate — grouped bar chart bucketed in 20-point bands
+- Keyword coverage vs interview rate — grouped bar chart bucketed in 25-point bands
+- Resume quality radar — pentagon chart of Human Score / Keyword Coverage / Interview Rate / Offer Rate / Consistency
+- Top 10 companies applied to — horizontal bar chart with interview overlay
+- All charts show empty-state prompts when data is insufficient
+- Data computed server-side from existing `TailoredResume` records (no new schema needed)
+
+---
+
+## [1.3.1] — 2026-04-01
+### Fix Prisma client not regenerated after migration
+**Scale: Patch** — runtime fix, no code change
+
+- Ran `prisma generate` after the `applicationStatus` migration; dashboard status buttons now save correctly
+
+---
+
 ## [1.3.0] — 2026-04-01
 ### Dashboard outcome tracking + insights
 **Scale: Minor** — new feature area with schema migration

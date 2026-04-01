@@ -45,6 +45,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           >
             Tailor Resume
           </Link>
+          <Link
+            href="/reports"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors text-gray-300 hover:text-white text-sm"
+          >
+            Reports
+          </Link>
         </nav>
         <div className="p-4 border-t border-gray-700">
           <form
