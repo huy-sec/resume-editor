@@ -1,8 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import dynamic from "next/dynamic";
-
-const ReportCharts = dynamic(() => import("./ReportCharts"), { ssr: false });
+import ReportChartsWrapper from "./ReportChartsWrapper";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -171,7 +169,7 @@ export default async function ReportsPage() {
           {total > 0 && interviews === 0 && " Mark interview and offer outcomes on the Dashboard to unlock deeper insights."}
         </p>
       </div>
-      <ReportCharts data={reportData} />
+      <ReportChartsWrapper data={reportData} />
     </div>
   );
 }
