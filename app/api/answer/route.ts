@@ -62,7 +62,7 @@ ${question.trim()}
 Write ONLY the answer — no preamble, no "Answer:", no quotes around it. Just the answer itself.`;
 
   try {
-    const answer = await callClaude(prompt, 300);
+    const answer = await callClaude(prompt);
     return NextResponse.json({ answer: answer.trim() });
   } catch (e: unknown) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed" }, { status: 500 });
