@@ -431,6 +431,11 @@ export default function TailorReviewPage() {
   const [rebuildInstructions, setRebuildInstructions] = useState("");
   const [rebuilding, setRebuilding] = useState(false);
   const [rebuildMessage, setRebuildMessage] = useState("");
+  const [answerQuestion, setAnswerQuestion] = useState("");
+  const [answerText, setAnswerText] = useState("");
+  const [answering, setAnswering] = useState(false);
+  const [answerError, setAnswerError] = useState("");
+  const [answerCopied, setAnswerCopied] = useState(false);
 
   const fetchData = useCallback(async () => {
     const res = await fetch(`/api/tailor/${id}`);
@@ -533,6 +538,33 @@ export default function TailorReviewPage() {
     } finally {
       setRebuilding(false);
     }
+  };
+
+  const handleAnswer = async () => {
+    if (!answerQuestion.trim()) return;
+    setAnswering(true);
+    setAnswerText("");
+    setAnswerError("");
+    try {
+      const res = await fetch("/api/answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeId: id, question: answerQuestion }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error);
+      setAnswerText(d.answer);
+    } catch (e: unknown) {
+      setAnswerError(e instanceof Error ? e.message : "Failed to generate answer");
+    } finally {
+      setAnswering(false);
+    }
+  };
+
+  const handleCopyAnswer = async () => {
+    await navigator.clipboard.writeText(answerText);
+    setAnswerCopied(true);
+    setTimeout(() => setAnswerCopied(false), 2000);
   };
 
   const handleDownload = async (type: "resume" | "cover" | "both") => {
@@ -790,6 +822,44 @@ export default function TailorReviewPage() {
               <p className={`text-xs mt-2 text-center font-medium ${rebuildMessage.startsWith("Rebuilt") ? "text-green-600" : "text-red-500"}`}>
                 {rebuildMessage}
               </p>
+            )}
+          </div>
+
+          {/* Application Q&A */}
+          <div className="bg-white border border-gray-200 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-1">Application Q&amp;A</h3>
+            <p className="text-xs text-gray-400 mb-2">
+              Paste an employer question and get a short, personable answer in your voice. Won&apos;t appear on any docs.
+            </p>
+            <textarea
+              value={answerQuestion}
+              onChange={(e) => setAnswerQuestion(e.target.value)}
+              rows={3}
+              className="w-full p-2 border border-gray-300 rounded-lg text-xs resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={`e.g. "Why are you interested in this role?" or "Describe a time you resolved a conflict."`}
+            />
+            <button
+              onClick={handleAnswer}
+              disabled={answering || !answerQuestion.trim()}
+              className="w-full mt-2 bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700 disabled:opacity-50 transition-colors font-medium"
+            >
+              {answering ? "Generating answer..." : "Generate Answer"}
+            </button>
+            {answerError && (
+              <p className="text-xs mt-2 text-red-500 text-center">{answerError}</p>
+            )}
+            {answerText && (
+              <div className="mt-3">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {answerText}
+                </div>
+                <button
+                  onClick={handleCopyAnswer}
+                  className="w-full mt-2 border border-gray-300 bg-white px-4 py-1.5 rounded-lg text-xs hover:bg-gray-50 transition-colors font-medium"
+                >
+                  {answerCopied ? "Copied!" : "Copy Answer"}
+                </button>
+              </div>
             )}
           </div>
 

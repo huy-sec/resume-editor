@@ -7,6 +7,19 @@ Versioning scheme:
 
 ---
 
+## [1.5.0] — 2026-04-03
+### Application Q&A answer generator
+**Scale: Minor** — new feature, new API route
+
+- Added "Application Q&A" panel to the tailor review page sidebar
+- User pastes an employer question; Claude generates a short (2–4 sentence) personable answer
+- Answer is grounded in the tailored resume context and the user's voice/personality profile (writing style, communication style, personal brand, MBTI)
+- Answer does not appear on any exported documents
+- One-click "Copy Answer" button to paste directly into application forms
+- New API route: `POST /api/answer`
+
+---
+
 ## [1.4.4] — 2026-04-01
 ### Fix Reports page hang at launch (Server Component ssr:false)
 **Scale: Patch** — SSR architecture fix
