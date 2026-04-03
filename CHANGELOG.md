@@ -7,6 +7,16 @@ Versioning scheme:
 
 ---
 
+## [1.5.2] — 2026-04-03
+### Dashboard resume search
+**Scale: Patch** — client-side filter, no new API
+
+- Added a search bar to the dashboard that filters resumes in real-time by job title, company, or approach
+- Shows match count when a query is active; clear button to reset
+- Extracted resume list into `DashboardList` client component; data fetching stays server-side
+
+---
+
 ## [1.5.1] — 2026-04-03
 ### Job description download link on dashboard
 **Scale: Patch** — new endpoint, UI addition

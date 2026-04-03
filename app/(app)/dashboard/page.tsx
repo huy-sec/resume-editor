@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import DashboardCard from "./DashboardCard";
+import DashboardList from "./DashboardList";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -140,25 +140,22 @@ export default async function DashboardPage() {
           </div>
         </div>
       ) : (
-        <div className="grid gap-3">
-          {resumes.map((r) => {
+        <DashboardList
+          resumes={resumes.map((r) => {
             let approach = "";
             try { approach = JSON.parse(r.resumeJSON).approach || ""; } catch { /* skip */ }
-            return (
-              <DashboardCard
-                key={r.id}
-                id={r.id}
-                jobTitle={r.jobTitle}
-                company={r.company}
-                createdAt={r.createdAt.toISOString()}
-                humanizationScore={r.humanizationScore}
-                applicationStatus={r.applicationStatus}
-                approach={approach}
-                keywordScore={kwCoverage(r)}
-              />
-            );
+            return {
+              id: r.id,
+              jobTitle: r.jobTitle,
+              company: r.company,
+              createdAt: r.createdAt.toISOString(),
+              humanizationScore: r.humanizationScore,
+              applicationStatus: r.applicationStatus,
+              approach,
+              keywordScore: kwCoverage(r),
+            };
           })}
-        </div>
+        />
       )}
     </div>
   );
