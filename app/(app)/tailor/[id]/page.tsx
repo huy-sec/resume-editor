@@ -150,8 +150,8 @@ function KeywordChecklist({ matches }: { matches: KeywordMatch[] }) {
       filter === "all" ? true : filter === "missing" ? m.status === "missing" : m.status !== "missing"
     );
 
-  const renderItem = (m: KeywordMatch) => (
-    <div key={`${m.type}-${m.keyword}`} className="flex items-center gap-2 text-sm">
+  const renderItem = (m: KeywordMatch, i: number) => (
+    <div key={`${m.type}-${m.keyword}-${i}`} className="flex items-center gap-2 text-sm">
       <span
         className={`w-4 h-4 rounded-full flex items-center justify-center text-xs flex-shrink-0 font-bold ${
           m.status === "found"
@@ -196,13 +196,13 @@ function KeywordChecklist({ matches }: { matches: KeywordMatch[] }) {
         {show(priority).length > 0 && (
           <div className="space-y-1.5">
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide pt-1">Required + Technical</div>
-            {show(priority).map(renderItem)}
+            {show(priority).map((m, i) => renderItem(m, i))}
           </div>
         )}
         {show(preferred).length > 0 && (
           <div className="space-y-1.5 mt-3">
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide pt-1">Preferred + Soft Skills</div>
-            {show(preferred).map(renderItem)}
+            {show(preferred).map((m, i) => renderItem(m, i))}
           </div>
         )}
       </div>

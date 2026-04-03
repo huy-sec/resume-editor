@@ -337,8 +337,12 @@ export function analyzeKeywordCoverage(
   ];
 
   for (const [kwList, type] of groups) {
+    const seen = new Set<string>();
     for (const kw of kwList) {
       if (!kw?.trim()) continue;
+      const normalized = kw.trim().toLowerCase();
+      if (seen.has(normalized)) continue;
+      seen.add(normalized);
       const status = checkCoverage(kw, textTokens, fullText);
       matches.push({ keyword: kw, type, status });
     }
