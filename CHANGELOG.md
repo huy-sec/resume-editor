@@ -7,6 +7,15 @@ Versioning scheme:
 
 ---
 
+## [1.5.1] — 2026-04-03
+### Job description download link on dashboard
+**Scale: Patch** — new endpoint, UI addition
+
+- Added `GET /api/resumes/[id]/jd` — serves the saved job description as a `.txt` file download
+- Dashboard card shows a small download icon (↓) next to each resume; clicking downloads the JD as `Job Title - Company.txt`
+
+---
+
 ## [1.5.0] — 2026-04-03
 ### Application Q&A answer generator
 **Scale: Minor** — new feature, new API route
