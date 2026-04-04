@@ -210,6 +210,32 @@ function KeywordChecklist({ matches }: { matches: KeywordMatch[] }) {
   );
 }
 
+// ---- Collapsible panel ----
+function Collapsible({ title, children, badge }: { title: string; children: React.ReactNode; badge?: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+      >
+        <span className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-gray-700">{title}</span>
+          {badge && <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{badge}</span>}
+        </span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && <div className="px-4 pb-4">{children}</div>}
+    </div>
+  );
+}
+
 // ---- Resume Preview ----
 function ResumePreview({
   data,
@@ -745,9 +771,8 @@ export default function TailorReviewPage() {
 
           {/* Suggestions */}
           {suggestions.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-xl p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Suggestions</h3>
-              <ul className="space-y-2">
+            <Collapsible title="Suggestions" badge={String(suggestions.length)}>
+              <ul className="space-y-2 pt-1">
                 {suggestions.map((s, i) => (
                   <li key={i} className="text-xs text-gray-600 flex gap-2">
                     <span className="text-blue-400 mt-0.5">→</span>
@@ -755,14 +780,13 @@ export default function TailorReviewPage() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </Collapsible>
           )}
 
           {/* Flags */}
           {flags.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-xl p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Issues Found</h3>
-              <div className="space-y-2">
+            <Collapsible title="Issues Found" badge={String(flags.length)}>
+              <div className="space-y-2 pt-1">
                 {flags.map((flag, i) => (
                   <div key={i} className="flex items-start gap-2">
                     <span
@@ -780,88 +804,89 @@ export default function TailorReviewPage() {
                   </div>
                 ))}
               </div>
+            </Collapsible>
+          )}
+
+          {/* Keywords */}
+          <Collapsible title="Keywords" badge={kwAnalysis ? `${kwAnalysis.coverageScore}%` : undefined}>
+            <div className="space-y-3 pt-1">
+              {kwAnalysis && (
+                <KeywordCoverageScore
+                  score={kwAnalysis.coverageScore}
+                  requiredScore={kwAnalysis.requiredScore}
+                  technicalScore={kwAnalysis.technicalScore}
+                />
+              )}
+              <KeywordChecklist matches={kwAnalysis?.matches ?? []} />
             </div>
-          )}
-
-          {/* Keyword Coverage Score */}
-          {kwAnalysis && (
-            <KeywordCoverageScore
-              score={kwAnalysis.coverageScore}
-              requiredScore={kwAnalysis.requiredScore}
-              technicalScore={kwAnalysis.technicalScore}
-            />
-          )}
-
-          {/* Keyword Checklist */}
-          <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Keyword Checklist</h3>
-            <KeywordChecklist matches={kwAnalysis?.matches ?? []} />
-          </div>
+          </Collapsible>
 
           {/* Additional Instructions / Rebuild */}
-          <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-1">Additional Instructions</h3>
-            <p className="text-xs text-gray-400 mb-2">
-              Add notes and rebuild — emphasize a skill, tweak tone, include a project, fix anything.
-            </p>
-            <textarea
-              value={rebuildInstructions}
-              onChange={(e) => setRebuildInstructions(e.target.value)}
-              rows={3}
-              className="w-full p-2 border border-gray-300 rounded-lg text-xs resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder={`e.g. "Emphasize my leadership of the API migration. Add TypeScript to skills. Make the cover letter less formal."`}
-            />
-            <button
-              onClick={handleRebuild}
-              disabled={rebuilding || !rebuildInstructions.trim()}
-              className="w-full mt-2 bg-violet-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-violet-700 disabled:opacity-50 transition-colors font-medium"
-            >
-              {rebuilding ? "Rebuilding..." : "Rebuild with Instructions"}
-            </button>
-            {rebuildMessage && (
-              <p className={`text-xs mt-2 text-center font-medium ${rebuildMessage.startsWith("Rebuilt") ? "text-green-600" : "text-red-500"}`}>
-                {rebuildMessage}
+          <Collapsible title="Additional Instructions">
+            <div className="pt-1">
+              <p className="text-xs text-gray-400 mb-2">
+                Add notes and rebuild — emphasize a skill, tweak tone, include a project, fix anything.
               </p>
-            )}
-          </div>
+              <textarea
+                value={rebuildInstructions}
+                onChange={(e) => setRebuildInstructions(e.target.value)}
+                rows={3}
+                className="w-full p-2 border border-gray-300 rounded-lg text-xs resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder={`e.g. "Emphasize my leadership of the API migration. Add TypeScript to skills. Make the cover letter less formal."`}
+              />
+              <button
+                onClick={handleRebuild}
+                disabled={rebuilding || !rebuildInstructions.trim()}
+                className="w-full mt-2 bg-violet-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-violet-700 disabled:opacity-50 transition-colors font-medium"
+              >
+                {rebuilding ? "Rebuilding..." : "Rebuild with Instructions"}
+              </button>
+              {rebuildMessage && (
+                <p className={`text-xs mt-2 text-center font-medium ${rebuildMessage.startsWith("Rebuilt") ? "text-green-600" : "text-red-500"}`}>
+                  {rebuildMessage}
+                </p>
+              )}
+            </div>
+          </Collapsible>
 
           {/* Application Q&A */}
-          <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-1">Application Q&amp;A</h3>
-            <p className="text-xs text-gray-400 mb-2">
-              Paste an employer question and get a short, personable answer in your voice. Won&apos;t appear on any docs.
-            </p>
-            <textarea
-              value={answerQuestion}
-              onChange={(e) => setAnswerQuestion(e.target.value)}
-              rows={3}
-              className="w-full p-2 border border-gray-300 rounded-lg text-xs resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder={`e.g. "Why are you interested in this role?" or "Describe a time you resolved a conflict."`}
-            />
-            <button
-              onClick={handleAnswer}
-              disabled={answering || !answerQuestion.trim()}
-              className="w-full mt-2 bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700 disabled:opacity-50 transition-colors font-medium"
-            >
-              {answering ? "Generating answer..." : "Generate Answer"}
-            </button>
-            {answerError && (
-              <p className="text-xs mt-2 text-red-500 text-center">{answerError}</p>
-            )}
-            {answerText && (
-              <div className="mt-3">
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {answerText}
+          <Collapsible title="Application Q&A">
+            <div className="pt-1">
+              <p className="text-xs text-gray-400 mb-2">
+                Paste an employer question and get a short, personable answer in your voice. Won&apos;t appear on any docs.
+              </p>
+              <textarea
+                value={answerQuestion}
+                onChange={(e) => setAnswerQuestion(e.target.value)}
+                rows={3}
+                className="w-full p-2 border border-gray-300 rounded-lg text-xs resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder={`e.g. "Why are you interested in this role?" or "Describe a time you resolved a conflict."`}
+              />
+              <button
+                onClick={handleAnswer}
+                disabled={answering || !answerQuestion.trim()}
+                className="w-full mt-2 bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700 disabled:opacity-50 transition-colors font-medium"
+              >
+                {answering ? "Generating answer..." : "Generate Answer"}
+              </button>
+              {answerError && (
+                <p className="text-xs mt-2 text-red-500 text-center">{answerError}</p>
+              )}
+              {answerText && (
+                <div className="mt-3">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {answerText}
+                  </div>
+                  <button
+                    onClick={handleCopyAnswer}
+                    className="w-full mt-2 border border-gray-300 bg-white px-4 py-1.5 rounded-lg text-xs hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    {answerCopied ? "Copied!" : "Copy Answer"}
+                  </button>
                 </div>
-                <button
-                  onClick={handleCopyAnswer}
-                  className="w-full mt-2 border border-gray-300 bg-white px-4 py-1.5 rounded-lg text-xs hover:bg-gray-50 transition-colors font-medium"
-                >
-                  {answerCopied ? "Copied!" : "Copy Answer"}
-                </button>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </Collapsible>
 
           {/* Download buttons */}
           <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-2">
