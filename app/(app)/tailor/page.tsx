@@ -35,6 +35,8 @@ export default function TailorPage() {
   const [approach, setApproach] = useState<TailorApproach>("career-momentum");
   const [notes, setNotes] = useState("");
   const [building, setBuilding] = useState(false);
+  const [showApproaches, setShowApproaches] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
   const [statusIndex, setStatusIndex] = useState(0);
   const [buildError, setBuildError] = useState("");
 
@@ -53,6 +55,8 @@ export default function TailorPage() {
       if (!res.ok) throw new Error(data.error);
       setRecommendation(data);
       setApproach(data.recommended as TailorApproach);
+      setShowApproaches(false);
+      setShowNotes(false);
     } catch (e: unknown) {
       setAnalyzeError(e instanceof Error ? e.message : "Analysis failed");
     } finally {
@@ -143,82 +147,110 @@ export default function TailorPage() {
             <p className="text-gray-800 text-sm leading-relaxed">{recommendation.fitSummary}</p>
           </div>
 
-          {/* Recommended approach callout */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-semibold text-gray-700">Choose Your Approach</label>
-              <button
-                onClick={() => setRecommendation(null)}
-                className="text-xs text-gray-400 hover:text-gray-600"
-              >
-                Re-analyze
-              </button>
-            </div>
+          {/* Approach selection — collapsible */}
+          <div className="mb-4 border border-gray-200 rounded-xl overflow-hidden">
+            <button
+              onClick={() => setShowApproaches((v) => !v)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50 transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-700">Choose Your Approach</span>
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                  {APPROACH_DESCRIPTIONS[approach].label}
+                </span>
+              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setRecommendation(null); }}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  Re-analyze
+                </button>
+                <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 text-gray-400 transition-transform ${showApproaches ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </button>
 
-            <div className="grid gap-3">
-              {APPROACH_KEYS.map((key) => {
-                const config = APPROACH_DESCRIPTIONS[key];
-                const isRecommended = key === recommendation.recommended;
-                const isSelected = approach === key;
-                const alt = recommendation.alternatives.find((a) => a.approach === key);
+            {showApproaches && (
+              <div className="px-4 pb-4 grid gap-3">
+                {APPROACH_KEYS.map((key) => {
+                  const config = APPROACH_DESCRIPTIONS[key];
+                  const isRecommended = key === recommendation.recommended;
+                  const isSelected = approach === key;
+                  const alt = recommendation.alternatives.find((a) => a.approach === key);
 
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setApproach(key)}
-                    className={`text-left p-4 rounded-xl border-2 transition-all ${
-                      isSelected
-                        ? "border-blue-600 bg-blue-50"
-                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className={`text-sm font-semibold ${isSelected ? "text-blue-700" : "text-gray-900"}`}>
-                            {config.label}
-                          </span>
-                          {isRecommended && (
-                            <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">
-                              AI Pick
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setApproach(key)}
+                      className={`text-left p-4 rounded-xl border-2 transition-all ${
+                        isSelected
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className={`text-sm font-semibold ${isSelected ? "text-blue-700" : "text-gray-900"}`}>
+                              {config.label}
                             </span>
-                          )}
+                            {isRecommended && (
+                              <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                AI Pick
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500 italic mb-2">{config.tagline}</div>
+                          <div className="text-xs text-gray-600 leading-relaxed">
+                            {isRecommended
+                              ? recommendation.reasoning
+                              : alt
+                              ? alt.reason
+                              : config.description}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500 italic mb-2">{config.tagline}</div>
-                        <div className="text-xs text-gray-600 leading-relaxed">
-                          {isRecommended
-                            ? recommendation.reasoning
-                            : alt
-                            ? alt.reason
-                            : config.description}
-                        </div>
+                        <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 ${
+                          isSelected ? "border-blue-600 bg-blue-600" : "border-gray-300"
+                        }`} />
                       </div>
-                      <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 ${
-                        isSelected ? "border-blue-600 bg-blue-600" : "border-gray-300"
-                      }`} />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Additional notes */}
-          <div className="mt-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Additional Instructions <span className="font-normal text-gray-400">(optional)</span>
-            </label>
-            <p className="text-xs text-gray-500 mb-2">
-              Tell Claude anything specific — emphasize certain skills, downplay gaps, focus on a project, adjust tone, or anything else you want reflected in the resume.
-            </p>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={4}
-              className="w-full p-3 border border-gray-300 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder={`e.g. "Emphasize my work on the payment system project. I don't have formal React experience but I've built several apps with it — include it. Keep the tone confident but not boastful."`}
-            />
+          {/* Additional notes — collapsible */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <button
+              onClick={() => setShowNotes((v) => !v)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50 transition-colors"
+            >
+              <span className="text-sm font-semibold text-gray-700">
+                Additional Instructions
+                <span className="font-normal text-gray-400 ml-1">(optional)</span>
+              </span>
+              <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 text-gray-400 transition-transform ${showNotes ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {showNotes && (
+              <div className="px-4 pb-4">
+                <p className="text-xs text-gray-500 mb-2">
+                  Tell Claude anything specific — emphasize certain skills, downplay gaps, focus on a project, adjust tone, or anything else you want reflected in the resume.
+                </p>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={4}
+                  className="w-full p-3 border border-gray-300 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder={`e.g. "Emphasize my work on the payment system project. I don't have formal React experience but I've built several apps with it — include it. Keep the tone confident but not boastful."`}
+                />
+              </div>
+            )}
           </div>
 
           {/* Advanced Options */}
