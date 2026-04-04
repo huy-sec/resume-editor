@@ -1,13 +1,55 @@
 export const HUMANIZATION_RULES = `
-HUMANIZATION RULES - STRICTLY FOLLOW THESE:
-- Never use em dashes (—). Use commas or periods instead.
-- Never use these words: leverage, utilize, spearhead, delve, facilitate, foster, robust, streamline, synergy, pivotal, cutting-edge, transformative, holistic, paradigm, impactful, innovative, solution-oriented, result-driven, dynamic, proactive
-- Vary sentence length: mix short punchy sentences with longer detailed ones
-- Use concrete numbers and specific details whenever possible
-- Write in active voice, not passive voice
-- Do not start two consecutive bullet points with the same verb
-- Write naturally like a real professional, not a corporate brochure
-- Use first-person implied (no "I" at the start of bullets)
+HUMANIZATION RULES — STRICTLY FOLLOW ALL OF THESE:
+
+BANNED WORDS (never use any of these):
+leverage, utilize, spearhead, delve, facilitate, foster, robust, streamline, synergy, pivotal,
+cutting-edge, transformative, holistic, paradigm, impactful, innovative, solution-oriented,
+result-driven, dynamic, proactive, seamless, seamlessly, comprehensive, meticulous, invaluable,
+commendable, vibrant, elevate, testament, embark, passionate, passion, adept, proficiency,
+showcasing, harnessing, groundbreaking, revolutionary, game-changing, disruptive, world-class,
+best-in-class, thought leader, ecosystem, landscape, realm, sphere, journey, narrative, tapestry,
+supercharge, unlock, unleash, empower, enable, ensure, demonstrate, amplify, accelerate, optimize,
+leverage, orchestrate, spearhead, cultivate, nurture
+
+BANNED PHRASES (never use):
+- "not only X but also Y"
+- "in order to" (use "to" instead)
+- "as well as" (use "and" instead)
+- "with the goal of"
+- "in terms of"
+- "with a focus on"
+- "at the intersection of"
+- "in the realm of"
+- "it's worth noting"
+- "it is important to"
+- "I am passionate about"
+- "I would be a great fit"
+- "I am excited to contribute"
+- "I look forward to hearing from you"
+- "thank you for your time and consideration"
+- "please do not hesitate to contact me"
+- "I am writing to express my interest"
+- "I am writing to apply"
+- any phrase with "passion" or "passionate"
+
+STRUCTURAL RULES:
+- Never start a bullet with a present participle (-ing word): not "Building X", "Creating Y", "Developing Z" — use past tense: "Built X", "Created Y", "Developed Z"
+- Never use the same sentence opener twice in a row (not two "I" sentences, not two "The" sentences)
+- Mix short sentences (under 10 words) with longer ones — never 3+ sentences of similar length in a row
+- Never list exactly 3 things in parallel structure repeatedly (X, Y, and Z pattern is an AI tell)
+- No em dashes (—). Use commas or periods instead
+- Avoid passive voice — use active voice throughout
+- Do not start two consecutive bullets with the same verb
+- Write in past tense for bullets (did, built, led, reduced) — not present tense
+- Use first-person implied in bullets (no "I" at the start)
+- No buzzword pairs: "fast-paced environment", "collaborative culture", "results-oriented team"
+- Vary punctuation: not every sentence ends with a period — some can end mid-thought with a comma continuing into the next clause
+
+TONE:
+- Write like a real professional emailing a colleague, not a corporate brochure
+- Use concrete numbers, names, and specific details — vague claims are AI tells
+- Occasional mild imperfection is more human than polished-to-perfection prose
+- If writing cover letter prose, contractions are fine (I've, I'd, it's, we're)
 `;
 
 export function buildTailorPrompt(profileJSON: string, jobDescription: string): string {
@@ -135,45 +177,69 @@ TASK:
 Write a cover letter that genuinely reflects this person's voice and enthusiasm.
 
 Rules:
-- Open with something specific about the company or role that excites you — no generic openers
-- Middle: pick ONE or TWO specific stories or achievements, told briefly but vividly
-- Closing: direct and confident, not sycophantic
-- 3 paragraphs, 250-320 words
-- Sound like a person, not a template — occasional contractions are fine
-- Do NOT use: "I am writing to express my interest", "I would be a great fit", "passionate about", "excited to contribute"
-- No bullet points in the cover letter
+- Open with something SPECIFIC about this company or role — a detail from the JD, something about their product, a concrete problem they're solving. Never open with "I am writing", never open with enthusiasm clichés
+- Middle: ONE specific achievement told with a number and a named outcome. Keep it tight — 2–3 sentences max for the story
+- Closing: end with a direct, confident statement about what you'd bring. Do NOT write "I look forward to hearing from you", "thank you for your consideration", or "please don't hesitate to contact me" — end on something forward-moving and specific
+- 3 paragraphs, 250–300 words total
+- Contractions are expected — write like a real person (I've, I'd, it's, that's)
+- Vary sentence length aggressively: short punchy sentences alongside longer detailed ones
+- Do NOT use: any word from the banned list, any banned phrase, present-participle openers ("Working at X taught me", "Having spent Y years" is fine; "Building X, I learned" is not)
+- Every sentence must be irreplaceable — if it could appear in any cover letter, cut it or make it specific
+- No bullet points
 
 OUTPUT: Return ONLY the cover letter body text (no greeting, no sign-off). Start with the first sentence of the opening paragraph.`;
 }
 
 export function buildScoringPrompt(text: string): string {
-  return `You are an AI writing detector expert. Analyze the following text and score how human-sounding it is.
+  return `You are an expert AI writing detector. Score the following text on how human it sounds. Be strict — most AI-assisted writing scores 40–65; genuinely human writing scores 75–95.
 
 TEXT TO ANALYZE:
 ${text}
 
-Check for these AI writing indicators:
-1. AI vocabulary: leverage, utilize, spearhead, delve, facilitate, foster, robust, streamline, synergy, pivotal, cutting-edge, transformative, holistic, paradigm, impactful
-2. Em dashes (—) overuse
-3. Passive voice frequency
-4. Sentence length uniformity (all similar length = AI tell)
-5. Repetitive sentence openers
-6. Overly formal or corporate buzzword density
-7. Lack of specific details / numbers
-8. The "rule of three" (lists of exactly 3 things repeatedly)
-9. Filler phrases: "in order to", "as well as", "in terms of", "with the goal of"
-10. Unnatural transitions
+Check ALL of the following AI writing indicators:
+
+VOCABULARY TELLS:
+- Banned corporate/AI words: leverage, utilize, spearhead, delve, facilitate, foster, robust, streamline, synergy, pivotal, cutting-edge, transformative, holistic, paradigm, impactful, innovative, seamless, comprehensive, meticulous, invaluable, vibrant, elevate, testament, embark, passionate, adept, proficiency, showcasing, harnessing, groundbreaking, ecosystem, landscape, realm, empower, ensure, amplify, orchestrate, cultivate, nurture, supercharge, unlock, unleash
+
+STRUCTURAL TELLS:
+- Present participle bullet openers ("Building X", "Creating Y", "Developing Z" instead of "Built", "Created", "Developed")
+- "Not only X but also Y" constructions
+- Lists of exactly 3 parallel items repeated throughout
+- Em dash (—) overuse
+- Passive voice frequency
+- All sentences similar length (AI tends toward uniform 15–20 word sentences)
+- Repetitive sentence openers (multiple sentences starting with "I", "The", "This", "By")
+- Filler phrases: "in order to", "as well as", "with the goal of", "in terms of", "it's worth noting"
+- Present tense bullets instead of past tense
+
+COVER LETTER SPECIFIC:
+- Generic openers: "I am writing to express my interest", "I am writing to apply"
+- Enthusiasm clichés: "passionate about", "excited to contribute", "would be a great fit"
+- Generic closers: "I look forward to hearing from you", "thank you for your consideration", "please do not hesitate"
+- Three-paragraph structure where each paragraph is exactly the same length
+- No specific company or role details (generic enough to send anywhere)
+
+CONTENT TELLS:
+- Vague claims with no numbers, names, or specifics
+- "Rule of three" (X, Y, and Z) used repeatedly
+- Every bullet follows subject-verb-object with same rhythm
+- Overly smooth transitions between ideas (no natural roughness)
+
+SCORING GUIDE:
+- 85–100: Sounds genuinely human, would pass most AI detectors
+- 70–84: Mostly human, minor AI patterns present
+- 50–69: Mixed — AI patterns are noticeable to trained readers
+- 30–49: Clearly AI-assisted, multiple strong indicators
+- 0–29: Unmistakably AI-generated
 
 OUTPUT: Return ONLY valid JSON:
 {
-  "score": <0-100, where 100 = very human, 0 = very AI-sounding>,
+  "score": <0-100>,
   "flags": [
-    { "type": "vocab|style|structure|passive", "description": "specific issue found", "severity": "low|medium|high" }
+    { "type": "vocab|structure|cover-letter|content", "description": "specific instance found with exact quote", "severity": "low|medium|high" }
   ],
-  "suggestions": ["specific actionable suggestion 1", "suggestion 2"]
-}
-
-Be honest and specific. A score of 85+ means it would likely pass AI detectors.`;
+  "suggestions": ["specific actionable fix with example of before/after"]
+}`;
 }
 
 export function buildImportPrompt(rawText: string): string {
@@ -445,38 +511,40 @@ OUTPUT: Return ONLY valid JSON in this exact structure:
 }
 
 export function buildHumanizeRewritePrompt(resumeJSON: string, coverLetterText: string, flags: { type: string; description: string; severity?: string }[], suggestions: string[], writingStyleExample?: string): string {
-  const styleSection = writingStyleExample ? `\nUSER'S WRITING STYLE EXAMPLE (match this voice exactly):\n${writingStyleExample}\n` : "";
+  const styleSection = writingStyleExample ? `\nUSER'S WRITING STYLE (match this voice exactly — this is how they naturally write):\n${writingStyleExample}\n` : "";
 
-  return `You are an expert editor specializing in making writing sound genuinely human. You have received a resume and cover letter that an AI detector has flagged.
+  return `You are an expert editor who makes AI-written text undetectable. You must rewrite this resume and cover letter so they pass strict AI detectors and sound like a real person wrote them.
 
 ${HUMANIZATION_RULES}
 
-AI DETECTOR FLAGS FOUND:
-${flags.map((f) => `- [${(f.severity ?? "medium").toUpperCase()}] ${f.type}: ${f.description}`).join("\n")}
-
-SUGGESTIONS:
-${suggestions.map((s) => `- ${s}`).join("\n")}
+ADDITIONAL REWRITING RULES:
+- Every bullet must start with a strong PAST TENSE verb (Built, Reduced, Led, Shipped, Designed, Wrote, Cut, Grew, Ran, Managed, Launched, Fixed, Automated, Negotiated, Trained)
+- Never start a bullet with an -ing word
+- Break any "not only X but also Y" into two separate sentences
+- If a sentence has "passionate", "seamless", "comprehensive", or any banned word — rewrite the entire sentence from scratch
+- Cover letter: each paragraph should have at least one sentence under 10 words AND one over 20 words
+- Cover letter: the opening sentence must reference something specific about this role or company — not a generic enthusiasm statement
+- Cover letter: closing paragraph must NOT contain "look forward to hearing from you", "thank you for your consideration", or "do not hesitate" — end with a direct, confident statement instead
+- Add at least 2 specific details (numbers, tool names, team sizes, timeframes) that weren't already in the text
+- If two consecutive sentences start with the same word, rewrite one of them
+- Vary the rhythm: after a long complex sentence, follow with a short punchy one
 ${styleSection}
+FLAGS TO FIX:
+${flags.map((f) => `- [${(f.severity ?? "medium").toUpperCase()}] ${f.type}: ${f.description}`).join("\n") || "No specific flags — do a full pass for all AI patterns"}
+
+SUGGESTIONS TO APPLY:
+${suggestions.map((s) => `- ${s}`).join("\n") || "Apply all humanization rules throughout"}
+
 RESUME TO REWRITE:
 ${resumeJSON}
 
 COVER LETTER TO REWRITE:
 ${coverLetterText}
 
-TASK:
-Fix every flagged issue. Rewrite all problematic sections to sound natural, personal, and human.
-- Vary sentence structure and length
-- Replace all AI vocabulary with natural alternatives
-- Remove em dashes, replace with commas or periods
-- Make bullets sound like a real person describing their work
-- Add personality — these should feel authentic, not templated
-- Keep all the facts, achievements, and numbers intact
-- Cover letter should read like a real person wrote it at their desk, not a template
-
-OUTPUT: Return ONLY valid JSON:
+OUTPUT: Return ONLY valid JSON (no markdown, no code fences):
 {
-  "resumeJSON": { ...same structure as input resume },
-  "coverLetterText": "full rewritten cover letter text"
+  "resumeJSON": { ...same structure as input, all fields preserved },
+  "coverLetterText": "full rewritten cover letter body"
 }`;
 }
 
