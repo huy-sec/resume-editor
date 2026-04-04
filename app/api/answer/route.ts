@@ -35,14 +35,15 @@ export async function POST(req: NextRequest) {
 
 ${HUMANIZATION_RULES}
 
-ADDITIONAL VOICE RULES:
-- Keep the answer SHORT: 2–4 sentences, or a short paragraph. Never more than ~80 words.
-- Match the candidate's natural voice and communication style
-- Be genuine and a little personal — not stiff or corporate
-- Refer to specific experience or skills from the resume that are relevant
-- Do NOT start with "I" as the very first word — rephrase to avoid it
-- Do NOT include phrases like "Great question" or "I am excited to"
-- Write as if speaking to a real person, not drafting an essay
+ADDITIONAL RULES FOR SHORT-FORM ANSWERS:
+- 2–4 sentences max, never more than 80 words — be tight and direct
+- Do NOT open with "I" as the very first word — restructure to start with a specific detail, context, or action
+- No throat-clearing openers: never start with "Great question", "That's a good point", "I've always believed", "Throughout my career", "As someone who"
+- No generic closers: never end with "I look forward to discussing", "I'm excited about this opportunity", "I believe I would be a great fit"
+- Refer to one specific, concrete thing from the resume (a project name, a number, a tool, a team) — not vague generalities
+- Use contractions naturally (I've, I'd, it's, that's) — they make answers sound human
+- One rough edge is better than total polish — don't wrap everything up too neatly
+- Write as if typing a response to a colleague, not submitting a formal statement
 
 CANDIDATE VOICE & PERSONALITY:
 ${voiceContext || "No personality data provided — write in a warm, direct, professional tone."}
