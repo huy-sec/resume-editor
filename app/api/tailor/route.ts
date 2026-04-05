@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { callClaude, extractJSON } from "@/lib/claude";
-import { buildTailorPromptWithApproach, buildCoverLetterPrompt, buildScoringPrompt, buildKeywordPrompt, buildPersonalityContext, TailorApproach } from "@/lib/prompts";
+import { buildTailorPromptWithApproach, buildCoverLetterPrompt, buildScoringPrompt, buildKeywordPrompt, buildHumanizeRewritePrompt, buildPersonalityContext, TailorApproach } from "@/lib/prompts";
 import { filterProjectsByRelevance, filterSkillsByRelevance, KeywordMap } from "@/lib/keywords";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -71,14 +71,46 @@ export async function POST(req: NextRequest) {
     .join("\n")}\n${coverLetterText}`;
   const scoreResponse = await callClaude(buildScoringPrompt(textToScore));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const scoreData = extractJSON(scoreResponse) as any;
+  let scoreData = extractJSON(scoreResponse) as any;
+
+  // 6. Auto-humanize if score below threshold
+  let finalResumeJSON = resumeJSON;
+  let finalCoverLetter = coverLetterText;
+  if ((scoreData.score || 0) < 75) {
+    try {
+      const rewriteResponse = await callClaude(
+        buildHumanizeRewritePrompt(
+          JSON.stringify(resumeJSON),
+          coverLetterText,
+          scoreData.flags || [],
+          scoreData.suggestions || [],
+          writingStyleExample
+        )
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rewritten = extractJSON(rewriteResponse) as any;
+      if (rewritten.resumeJSON && rewritten.coverLetterText) {
+        finalResumeJSON = rewritten.resumeJSON;
+        finalCoverLetter = rewritten.coverLetterText;
+        // Re-score after rewrite
+        const reTextToScore = `${finalResumeJSON.summary || ""}\n${(finalResumeJSON.experiences || [])
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .flatMap((e: any) => e.bullets || [])
+          .join("\n")}\n${finalCoverLetter}`;
+        const reScoreResponse = await callClaude(buildScoringPrompt(reTextToScore));
+        scoreData = extractJSON(reScoreResponse) as any;
+      }
+    } catch {
+      // If rewrite fails, keep the original — don't block the whole build
+    }
+  }
 
   const payload = {
-    jobTitle: resumeJSON.jobTitle || keywords.jobTitle || "",
-    company: resumeJSON.company || keywords.company || "",
+    jobTitle: finalResumeJSON.jobTitle || resumeJSON.jobTitle || keywords.jobTitle || "",
+    company: finalResumeJSON.company || resumeJSON.company || keywords.company || "",
     jobDescription,
-    resumeJSON: JSON.stringify(resumeJSON),
-    coverLetterText,
+    resumeJSON: JSON.stringify(finalResumeJSON),
+    coverLetterText: finalCoverLetter,
     humanizationScore: scoreData.score || 0,
     scoreFlags: JSON.stringify(scoreData.flags || []),
     keywords: JSON.stringify(keywords),

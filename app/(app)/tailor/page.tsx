@@ -12,6 +12,7 @@ const BUILD_STATUS_MESSAGES = [
   "Generating cover letter...",
   "Extracting ATS keywords...",
   "Scoring humanization...",
+  "Removing AI patterns from the draft...",
   "Finishing up...",
 ];
 

@@ -7,6 +7,31 @@ Versioning scheme:
 
 ---
 
+## [1.5.3] — 2026-04-04
+### Overhaul humanization rules, scoring, and cover letter prompts
+**Scale: Patch** — prompt-only changes, no API or UI impact
+
+- Expanded `HUMANIZATION_RULES` banned word list to 50+ terms (added: seamless, comprehensive, empower, ensure, orchestrate, cultivate, nurture, supercharge, unlock, unleash, and more)
+- Added banned phrases list (15+ patterns including "not only X but also Y", "in order to", generic cover letter openers/closers)
+- Added structural rules: gerund bullet openers banned, parallel triplets flagged, passive voice, uniform sentence length
+- `buildScoringPrompt`: expanded to four detection categories (vocab, structural, cover-letter specific, content tells); added per-category scoring guide; flags now require exact quotes
+- `buildHumanizeRewritePrompt`: added explicit past-tense bullet enforcement, paragraph rhythm rules, gerund ban, confident closer requirement, and instruction to add 2+ specific details
+- `buildCoverLetterPrompt`: replaced Rules block — opening must cite a specific JD detail, closing must not use generic sign-offs, word count tightened to 250–300, contractions required, every sentence must be irreplaceable
+
+---
+
+## [1.5.4] — 2026-04-04
+### Auto-humanize first draft during build
+**Scale: Minor** — new pipeline step, no schema changes
+
+- Tailor route now automatically runs a humanize rewrite pass after the initial generation if the humanization score is below 75
+- Re-scores after the rewrite so the saved score reflects the final content
+- If the rewrite fails for any reason, falls back to the original draft silently
+- Added "Removing AI patterns from the draft..." to the build status messages
+- First draft should now arrive already cleaned up — "Fix AI Writing" becomes a refinement tool rather than a necessity
+
+---
+
 ## [1.5.2] — 2026-04-03
 ### Dashboard resume search
 **Scale: Patch** — client-side filter, no new API
