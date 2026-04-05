@@ -41,3 +41,27 @@ export function extractJSON(text: string): unknown {
   if (!match) throw new Error("No JSON found in response");
   return JSON.parse(match[1] || match[0]);
 }
+
+/** Hard-strip AI patterns that Claude ignores even when instructed.
+ *  Apply to all text fields before saving. */
+export function sanitizeText(text: string): string {
+  return text
+    // Em dashes with surrounding spaces → comma
+    .replace(/ — /g, ", ")
+    // Em dashes without spaces → comma
+    .replace(/—/g, ", ")
+    // En dashes used as em dashes → comma
+    .replace(/ – /g, ", ");
+}
+
+/** Recursively sanitize all string fields in a resume JSON object */
+export function sanitizeResumeJSON(obj: unknown): unknown {
+  if (typeof obj === "string") return sanitizeText(obj);
+  if (Array.isArray(obj)) return obj.map(sanitizeResumeJSON);
+  if (obj && typeof obj === "object") {
+    return Object.fromEntries(
+      Object.entries(obj as Record<string, unknown>).map(([k, v]) => [k, sanitizeResumeJSON(v)])
+    );
+  }
+  return obj;
+}

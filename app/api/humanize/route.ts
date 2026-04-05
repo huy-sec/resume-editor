@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { callClaude, extractJSON } from "@/lib/claude";
+import { callClaude, extractJSON, sanitizeText, sanitizeResumeJSON } from "@/lib/claude";
 import { buildHumanizeRewritePrompt, buildScoringPrompt } from "@/lib/prompts";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -37,20 +37,23 @@ export async function POST(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const scoreData = extractJSON(scoreResponse) as any;
 
+  const cleanResumeJSON = sanitizeResumeJSON(rewritten.resumeJSON);
+  const cleanCoverLetter = sanitizeText(rewritten.coverLetterText || "");
+
   // Save updated
   await prisma.tailoredResume.update({
     where: { id },
     data: {
-      resumeJSON: JSON.stringify(rewritten.resumeJSON),
-      coverLetterText: rewritten.coverLetterText,
+      resumeJSON: JSON.stringify(cleanResumeJSON),
+      coverLetterText: cleanCoverLetter,
       humanizationScore: scoreData.score || 0,
       scoreFlags: JSON.stringify(scoreData.flags || []),
     },
   });
 
   return NextResponse.json({
-    resumeJSON: rewritten.resumeJSON,
-    coverLetterText: rewritten.coverLetterText,
+    resumeJSON: cleanResumeJSON,
+    coverLetterText: cleanCoverLetter,
     humanizationScore: scoreData.score,
     scoreFlags: scoreData.flags,
     suggestions: scoreData.suggestions,
